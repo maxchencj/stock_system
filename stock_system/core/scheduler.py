@@ -44,10 +44,10 @@ class TaskScheduler:
             replace_existing=True
         )
 
-        # 市场早报（交易日早上8:00）
+        # 市场早报（每天早上8:00，包括周末）
         self.scheduler.add_job(
             self.morning_brief_task,
-            CronTrigger(hour=8, minute=0, day_of_week="mon-fri"),
+            CronTrigger(hour=8, minute=0),
             id="morning_brief",
             name="市场早报",
             replace_existing=True
