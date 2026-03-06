@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>股票智能分析系统</title>
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios@1.5.0/dist/axios.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background: #f5f7fa;
+            color: #333;
+        }
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .header h1 { font-size: 28px; margin-bottom: 5px; }
+        .header p { font-size: 14px; opacity: 0.9; }
+        .container {
+            max-width: 1400px;
+            margin: 20px auto;
+            padding: 0 20px;
+        }
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #e0e0e0;
+        }
+        .tab {
+            padding: 12px 24px;
+            background: white;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+            border-radius: 8px 8px 0 0;
+            transition: all 0.3s;
+        }
+        .tab:hover { background: #f0f0f0; }
+        .tab.active {
+            background: #667eea;
+            color: white;
+            font-weight: bold;
+        }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+        .card h2 {
+            font-size: 20px;
+            margin-bottom: 15px;
+            color: #667eea;
+            border-left: 4px solid #667eea;
+            padding-left: 10px;
+        }
+        .btn {
+            padding: 10px 20px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+        .btn:hover { background: #5568d3; transform: translateY(-2px); }
+        .btn:active { transform: translateY(0); }
+        .btn-success { background: #10b981; }
+        .btn-success:hover { background: #059669; }
+        .btn-danger { background: #ef4444; }
+        .btn-danger:hover { background: #dc2626; }
+        .chart { width: 100%; height: 400px; }
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #999;
+        }
+        .stock-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 15px;
+        }
+        .stock-item {
+            background: #f9fafb;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+        }
+        .stock-item h3 { font-size: 16px; margin-bottom: 8px; }
+        .stock-item p { font-size: 13px; color: #666; margin: 4px 0; }
+        .positive { color: #10b981; font-weight: bold; }
+        .negative { color: #ef4444; font-weight: bold; }
+        .controls {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        .input {
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>📊 股票智能分析系统</h1>
+        <p>AI驱动 · 全市场扫描 · 实时监控 · 板块轮动</p>
+    </div>
+
+    <div class="container">
+        <div class="tabs">
+            <button class="tab active" onclick="switchTab('overview')">📈 市场概览</button>
+            <button class="tab" onclick="switchTab('picker')">🎯 选股模块</button>
+            <button class="tab" onclick="switchTab('monitor')">👀 监控模块</button>
+            <button class="tab" onclick="switchTab('sector')">🔥 板块分析</button>
+        </div>
+
+        <!-- 市场概览 -->
+        <div id="overview" class="tab-content active">
+            <div class="card">
+                <h2>系统状态</h2>
+                <div class="controls">
+                    <button class="btn" onclick="checkHealth()">🔄 刷新状态</button>
+                    <button class="btn btn-success" onclick="startMonitor()">▶️ 启动监控</button>
+                    <button class="btn btn-danger" onclick="stopMonitor()">⏸️ 停止监控</button>
+                </div>
+                <div id="system-status" class="loading">加载中...</div>
+            </div>
+
+            <div class="card">
+                <h2>实时行情（沪深300样本）</h2>
+                <div id="market-chart" class="chart"></div>
+            </div>
+        </div>
+
+        <!-- 选股模块 -->
+        <div id="picker" class="tab-content">
+            <div class="card">
+                <h2>每日选股扫描</h2>
+                <div class="controls">
+                    <button class="btn" onclick="runStockScan()">🚀 开始扫描</button>
+                </div>
+                <div id="picker-result" class="loading">点击"开始扫描"执行选股...</div>
+            </div>
+        </div>
+
+        <!-- 监控模块 -->
+        <div id="monitor" class="tab-content">
+            <div class="card">
+                <h2>自选股管理</h2>
+                <div class="controls">
+                    <input type="text" id="stock-code-input" class="input" placeholder="输入股票代码（如600519）">
+                    <button class="btn" onclick="addWatchlist()">➕ 添加</button>
+                    <button class="btn" onclick="loadWatchlist()">🔄 刷新</button>
+                </div>
+                <div id="watchlist-content" class="loading">加载中...</div>
+            </div>
+        </div>
+
+        <!-- 板块分析 -->
+        <div id="sector" class="tab-content">
+            <div class="card">
+                <h2>板块分析</h2>
+                <div class="controls">
+                    <button class="btn" onclick="runSectorAnalysis()">🔍 开始分析</button>
+                </div>
+                <div id="sector-result" class="loading">点击"开始分析"执行板块分析...</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 切换标签页
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            event.target.classList.add('active');
+            document.getElementById(tabName).classList.add('active');
+        }
+
+        // 健康检查
+        async function checkHealth() {
+            try {
+                const res = await axios.get('/api/health');
+                const status = res.data;
+                document.getElementById('system-status').innerHTML = `
+                    <p>✅ 系统运行正常</p>
+                    <p>时间: ${status.timestamp}</p>
+                    <p>监控状态: ${status.monitor_running ? '🟢 运行中' : '🔴 已停止'}</p>
+                `;
+            } catch (e) {
+                document.getElementById('system-status').innerHTML = `<p>❌ 系统异常: ${e.message}</p>`;
+            }
+        }
+
+        // 启动监控
+        async function startMonitor() {
+            try {
+                await axios.post('/api/monitor/start');
+                alert('✅ 监控已启动');
+                checkHealth();
+            } catch (e) {
+                alert('❌ 启动失败: ' + e.message);
+            }
+        }
+
+        // 停止监控
+        async function stopMonitor() {
+            try {
+                await axios.post('/api/monitor/stop');
+                alert('✅ 监控已停止');
+                checkHealth();
+            } catch (e) {
+                alert('❌ 停止失败: ' + e.message);
+            }
+        }
+
+        // 执行选股扫描
+        async function runStockScan() {
+            document.getElementById('picker-result').innerHTML = '<div class="loading">扫描中，请稍候...</div>';
+            try {
+                const res = await axios.get('/api/picker/scan');
+                const data = res.data.data;
+                let html = `<p>扫描完成，耗时 ${data.elapsed_seconds}s</p>`;
+                html += `<p>候选股票: ${data.candidates.length} 只</p><hr>`;
+
+                if (data.ai_picks && data.ai_picks.top_picks) {
+                    html += '<h3>🎯 AI精选推荐</h3><div class="stock-list">';
+                    data.ai_picks.top_picks.forEach(pick => {
+                        html += `
+                            <div class="stock-item">
+                                <h3>[${pick.code}] ${pick.name}</h3>
+                                <p>评分: ${pick.score} | ${pick.recommendation}</p>
+                                <p>📌 ${pick.buy_reason}</p>
+                                <p>🛡️ 止损: ${pick.stop_loss} | 目标: ${pick.target_price}</p>
+                            </div>
+                        `;
+                    });
+                    html += '</div>';
+                }
+
+                document.getElementById('picker-result').innerHTML = html;
+            } catch (e) {
+                document.getElementById('picker-result').innerHTML = `<p>❌ 扫描失败: ${e.message}</p>`;
+            }
+        }
+
+        // 加载自选股
+        async function loadWatchlist() {
+            document.getElementById('watchlist-content').innerHTML = '<div class="loading">加载中...</div>';
+            try {
+                const res = await axios.get('/api/monitor/watchlist');
+                const codes = res.data.data;
+                if (codes.length === 0) {
+                    document.getElementById('watchlist-content').innerHTML = '<p>暂无自选股</p>';
+                    return;
+                }
+
+                const quotesRes = await axios.get('/api/market/realtime?codes=' + codes.join(','));
+                const stocks = quotesRes.data.data;
+
+                let html = '<div class="stock-list">';
+                stocks.forEach(stock => {
+                    const changeClass = stock.change_pct >= 0 ? 'positive' : 'negative';
+                    html += `
+                        <div class="stock-item">
+                            <h3>[${stock.code}] ${stock.name}</h3>
+                            <p>价格: ${stock.price} | 涨跌: <span class="${changeClass}">${stock.change_pct}%</span></p>
+                            <p>量比: ${stock.volume_ratio} | 换手: ${stock.turnover_rate}%</p>
+                            <button class="btn btn-danger" onclick="removeWatchlist('${stock.code}')">删除</button>
+                        </div>
+                    `;
+                });
+                html += '</div>';
+                document.getElementById('watchlist-content').innerHTML = html;
+            } catch (e) {
+                document.getElementById('watchlist-content').innerHTML = `<p>❌ 加载失败: ${e.message}</p>`;
+            }
+        }
+
+        // 添加自选股
+        async function addWatchlist() {
+            const code = document.getElementById('stock-code-input').value.trim();
+            if (!code) {
+                alert('请输入股票代码');
+                return;
+            }
+            try {
+                await axios.post(`/api/monitor/watchlist/add/${code}`);
+                alert('✅ 添加成功');
+                document.getElementById('stock-code-input').value = '';
+                loadWatchlist();
+            } catch (e) {
+                alert('❌ 添加失败: ' + e.message);
+            }
+        }
+
+        // 移除自选股
+        async function removeWatchlist(code) {
+            if (!confirm(`确定移除 ${code}？`)) return;
+            try {
+                await axios.delete(`/api/monitor/watchlist/remove/${code}`);
+                alert('✅ 移除成功');
+                loadWatchlist();
+            } catch (e) {
+                alert('❌ 移除失败: ' + e.message);
+            }
+        }
+
+        // 执行板块分析
+        async function runSectorAnalysis() {
+            document.getElementById('sector-result').innerHTML = '<div class="loading">分析中，请稍候...</div>';
+            try {
+                const res = await axios.get('/api/sector/analysis');
+                const data = res.data.data;
+                let html = `<p>分析完成，耗时 ${data.elapsed_seconds}s</p><hr>`;
+
+                if (data.sectors && data.sectors.length > 0) {
+                    html += '<h3>🔥 涨幅榜 TOP10</h3><div class="stock-list">';
+                    data.sectors.slice(0, 10).forEach((sec, i) => {
+                        const changeClass = sec.change_pct >= 0 ? 'positive' : 'negative';
+                        html += `
+                            <div class="stock-item">
+                                <h3>${i+1}. ${sec.name}</h3>
+                                <p>涨跌幅: <span class="${changeClass}">${sec.change_pct}%</span></p>
+                                <p>领涨股: ${sec.leader_stock || '暂无'}</p>
+                            </div>
+                        `;
+                    });
+                    html += '</div>';
+                }
+
+                if (data.ai_analysis && data.ai_analysis.daily_report) {
+                    html += `<hr><h3>📝 AI日报</h3><p>${data.ai_analysis.daily_report}</p>`;
+                }
+
+                document.getElementById('sector-result').innerHTML = html;
+            } catch (e) {
+                document.getElementById('sector-result').innerHTML = `<p>❌ 分析失败: ${e.message}</p>`;
+            }
+        }
+
+        // 页面加载时初始化
+        window.onload = function() {
+            checkHealth();
+            loadWatchlist();
+        };
+    </script>
+</body>
+</html>
