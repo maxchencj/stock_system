@@ -1,0 +1,41 @@
+Traceback (most recent call last):
+  File "/Users/maxchen/Desktop/claudeForStock/stock_system/main.py", line 11, in <module>
+    from core.scheduler import scheduler
+  File "/Users/maxchen/Desktop/claudeForStock/stock_system/core/scheduler.py", line 10, in <module>
+    from modules.stock_picker.picker import stock_picker
+  File "/Users/maxchen/Desktop/claudeForStock/stock_system/modules/stock_picker/picker.py", line 7, in <module>
+    import pandas as pd
+  File "/Library/Frameworks/Python.framework/Versions/3.11/lib/python3.11/site-packages/pandas/__init__.py", line 19, in <module>
+    raise ImportError(
+ImportError: Unable to import required dependencies:
+numpy: Error importing numpy: you should not try to import numpy from
+        its source directory; please exit the numpy source tree, and relaunch
+        your python interpreter from there.
+Traceback (most recent call last):
+  File "/Users/maxchen/Desktop/claudeForStock/stock_system/main.py", line 11, in <module>
+    from core.scheduler import scheduler
+  File "/Users/maxchen/Desktop/claudeForStock/stock_system/core/scheduler.py", line 10, in <module>
+    from modules.stock_picker.picker import stock_picker
+  File "/Users/maxchen/Desktop/claudeForStock/stock_system/modules/stock_picker/picker.py", line 7, in <module>
+    import pandas as pd
+  File "/Library/Frameworks/Python.framework/Versions/3.11/lib/python3.11/site-packages/pandas/__init__.py", line 19, in <module>
+    raise ImportError(
+ImportError: Unable to import required dependencies:
+numpy: Error importing numpy: you should not try to import numpy from
+        its source directory; please exit the numpy source tree, and relaunch
+        your python interpreter from there.
+Traceback (most recent call last):
+  File "/Users/maxchen/Desktop/claudeForStock/stock_system/main.py", line 11, in <module>
+    from core.scheduler import scheduler
+  File "/Users/maxchen/Desktop/claudeForStock/stock_system/core/scheduler.py", line 10, in <module>
+    from modules.stock_picker.picker import stock_picker
+  File "/Users/maxchen/Desktop/claudeForStock/stock_system/modules/stock_picker/picker.py", line 7, in <module>
+    import pandas as pd
+  File "/Library/Frameworks/Python.framework/Versions/3.11/lib/python3.11/site-packages/pandas/__init__.py", line 19, in <module>
+    raise ImportError(
+ImportError: Unable to import required dependencies:
+numpy: Error importing numpy: you should not try to import numpy from
+        its source directory; please exit the numpy source tree, and relaunch
+        your python interpreter from there.
+shell-init: error retrieving current directory: getcwd: cannot access parent directories: Operation not permitted
+/bin/bash: /Users/maxchen/Desktop/claudeForStock/stock_system/launch_wrapper.sh: Operation not permitted

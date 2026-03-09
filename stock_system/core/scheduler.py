@@ -110,14 +110,37 @@ class TaskScheduler:
         logger.info("=" * 60)
         logger.info("执行定时任务: 市场早报")
         try:
-            # 简单的市场数据汇总
-            market_data = {
-                "date": datetime.now().strftime("%Y-%m-%d"),
-                "message": "今日市场早报（占位）"
-            }
-            # brief = ai_engine.generate_morning_brief(market_data)
-            # notifier.send_morning_brief(brief)
-            logger.info("市场早报任务完成")
+            from ai.analysis_engine import ai_engine
+            import akshare as ak
+
+            # 获取市场数据
+            try:
+                # 获取上证指数最新数据
+                sh_index = ak.stock_zh_index_daily(symbol="sh000001")
+                latest = sh_index.tail(1).iloc[0]
+
+                market_data = {
+                    "date": datetime.now().strftime("%Y-%m-%d"),
+                    "index_close": float(latest.get('close', 0)),
+                    "index_change": float(latest.get('pct_chg', 0)) if 'pct_chg' in latest else 0,
+                    "volume": float(latest.get('volume', 0)),
+                }
+            except Exception as e:
+                logger.warning(f"获取市场数据失败: {e}，使用默认数据")
+                market_data = {
+                    "date": datetime.now().strftime("%Y-%m-%d"),
+                    "message": "今日市场早报"
+                }
+
+            # 生成早报
+            brief = ai_engine.generate_morning_brief(market_data)
+
+            # 推送早报
+            if brief:
+                notifier.send_morning_brief(brief)
+                logger.info("市场早报任务完成，已推送")
+            else:
+                logger.warning("市场早报生成失败")
         except Exception as e:
             logger.error(f"市场早报任务失败: {e}", exc_info=True)
 

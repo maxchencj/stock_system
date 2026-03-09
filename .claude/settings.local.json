@@ -52,7 +52,29 @@
       "Bash(python main.py --test-sector 2>&1 | head -150)",
       "Bash(python system_check.py)",
       "Bash(pkill -f \"python.*main.py\")",
-      "Bash(python3 final_report.py)"
+      "Bash(python3 final_report.py)",
+      "Bash(pkill -f \"python3.*main.py\")",
+      "Bash(python3 test_morning_brief.py)",
+      "Bash(python3 fix_notification.py)",
+      "Bash(cat > /Users/maxchen/Desktop/claudeForStock/stock_system/restart.sh << 'EOF'\n#!/bin/bash\n# 重启股票分析系统\n\ncd \"$\\(dirname \"$0\"\\)\"\n\necho \"停止旧进程...\"\npkill -f \"python3.*main.py\" 2>/dev/null || true\nsleep 2\n\necho \"启动新进程...\"\nnohup python3 main.py > logs/system_run.log 2>&1 &\nPID=$!\n\nsleep 3\n\nif ps -p $PID > /dev/null; then\n    echo \"✅ 系统已启动成功\"\n    echo \"PID: $PID\"\n    echo \"\"\n    tail -20 logs/system_run.log\nelse\n    echo \"❌ 系统启动失败，查看日志:\"\n    tail -50 logs/system_run.log\nfi\nEOF\nchmod +x /Users/maxchen/Desktop/claudeForStock/stock_system/restart.sh\necho \"脚本已创建\")",
+      "Bash(./restart.sh)",
+      "Bash(kill -9 70195\nsleep 2\n./restart.sh)",
+      "Bash(python3 push_explanation.py)",
+      "Bash(chmod +x /Users/maxchen/Desktop/claudeForStock/stock_system/watchdog.sh\nchmod +x /Users/maxchen/Desktop/claudeForStock/stock_system/restart.sh\necho \"脚本权限已设置\")",
+      "Bash(./watchdog.sh\ncat logs/watchdog.log 2>/dev/null | tail -5)",
+      "Bash(./watchdog.sh\nsleep 1\ncat logs/watchdog.log)",
+      "Bash(cat crontab_config.txt | crontab -\ncrontab -l)",
+      "Bash(chmod +x install_launchd.sh\n./install_launchd.sh)",
+      "Bash(launchctl list | grep stock)",
+      "Bash(launchctl unload ~/Library/LaunchAgents/com.stock.analysis.system.plist 2>/dev/null || true\nsleep 2\n./install_launchd.sh)",
+      "Bash(chmod +x launch_wrapper.sh)",
+      "Bash(launchctl unload ~/Library/LaunchAgents/com.stock.analysis.system.plist 2>/dev/null || true\n./restart.sh)",
+      "Bash(pkill -f \"python3.*main.py\"\nsleep 2\n./restart.sh)",
+      "Bash(python3 daemon_setup_complete.py)",
+      "Bash(python3 test_push_now.py)",
+      "Bash(xargs kill -9 sleep 2 ps aux)",
+      "Bash(kill -9 23201 23925 23860 23832 23795 23760 23697 19871\nsleep 2\nps aux | grep \"main.py\" | grep -v grep)",
+      "Bash(kill -9 23201 23925 23860 23832 23795 23760 23697 19871 2>/dev/null; sleep 2; ps aux | grep \"main.py\" | grep -v grep)"
     ]
   }
 }

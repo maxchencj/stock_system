@@ -36,7 +36,14 @@ class StockSystem:
 
         # 启动Web服务（在独立线程）
         if enable_web:
-            self.web_thread = Thread(target=start_web_server, daemon=True)
+            def safe_start_web():
+                try:
+                    start_web_server()
+                except Exception as e:
+                    logger.error(f"Web服务异常: {e}")
+                    logger.info("系统继续运行（不含Web服务）")
+
+            self.web_thread = Thread(target=safe_start_web, daemon=True)
             self.web_thread.start()
             logger.info(f"Web Dashboard: http://{config.web.host}:{config.web.port}")
 

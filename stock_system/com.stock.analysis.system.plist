@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.stock.analysis.system</string>
+
+    <key>ProgramArguments</key>
+    <array>
+        <string>/Users/maxchen/Desktop/claudeForStock/stock_system/launch_wrapper.sh</string>
+    </array>
+
+    <key>WorkingDirectory</key>
+    <string>/Users/maxchen/Desktop/claudeForStock/stock_system</string>
+
+    <key>StandardOutPath</key>
+    <string>/Users/maxchen/Desktop/claudeForStock/stock_system/logs/launchd.out.log</string>
+
+    <key>StandardErrorPath</key>
+    <string>/Users/maxchen/Desktop/claudeForStock/stock_system/logs/launchd.err.log</string>
+
+    <key>EnvironmentVariables</key>
+    <dict>
+        <key>PATH</key>
+        <string>/Library/Frameworks/Python.framework/Versions/3.11/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin</string>
+        <key>PYTHONPATH</key>
+        <string>/Users/maxchen/Desktop/claudeForStock/stock_system</string>
+    </dict>
+
+    <key>RunAtLoad</key>
+    <true/>
+
+    <key>KeepAlive</key>
+    <dict>
+        <key>SuccessfulExit</key>
+        <false/>
+    </dict>
+
+    <key>ThrottleInterval</key>
+    <integer>60</integer>
+</dict>
+</plist>

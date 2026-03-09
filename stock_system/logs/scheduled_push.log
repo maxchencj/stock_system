@@ -1,0 +1,4 @@
+2026-03-08 15:39:59 [INFO] stock_system - 设置定时推送: 2026-03-08 17:00:00
+2026-03-08 15:39:59 [INFO] stock_system - 等待推送时间...
+2026-03-08 17:00:00 [INFO] stock_system - PushPlus推送成功: 📢 定时推送测试
+2026-03-08 17:00:00 [INFO] stock_system - 定时推送已发送

@@ -165,13 +165,17 @@ async def stop_monitor():
 
 def start_web_server():
     """启动Web服务"""
-    logger.info(f"启动Web服务: http://{config.web.host}:{config.web.port}")
-    uvicorn.run(
-        app,
-        host=config.web.host,
-        port=config.web.port,
-        log_level="info"
-    )
+    try:
+        logger.info(f"启动Web服务: http://{config.web.host}:{config.web.port}")
+        uvicorn.run(
+            app,
+            host=config.web.host,
+            port=config.web.port,
+            log_level="info"
+        )
+    except Exception as e:
+        logger.error(f"Web服务启动失败: {e}")
+        logger.info("系统将继续运行（不含Web服务）")
 
 
 if __name__ == "__main__":

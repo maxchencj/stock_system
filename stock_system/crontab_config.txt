@@ -1,0 +1,6 @@
+# 股票分析系统 - 进程守护
+# 每5分钟检查一次系统是否运行，如果没有运行则自动启动
+*/5 * * * * cd /Users/maxchen/Desktop/claudeForStock/stock_system && ./watchdog.sh
+
+# 每天凌晨4点重启系统（清理内存）
+0 4 * * * cd /Users/maxchen/Desktop/claudeForStock/stock_system && ./restart.sh >> logs/restart.log 2>&1
