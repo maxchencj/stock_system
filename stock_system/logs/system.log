@@ -9209,3 +9209,7 @@ INFO:     Uvicorn running on http://0.0.0.0:8888 (Press CTRL+C to quit)
 2026-03-10 22:09:19 [INFO] stock_system - ✅ 系统启动完成
 2026-03-10 22:09:19 [INFO] stock_system - ============================================================
 2026-03-10 22:09:19 [INFO] stock_system - 按 Ctrl+C 停止系统
+2026-03-10 22:45:32 [ERROR] stock_system - Telegram推送失败: {"ok":false,"error_code":400,"description":"Bad Request: chat not found"}
+2026-03-10 22:46:34 [ERROR] stock_system - Telegram推送失败: {"ok":false,"error_code":400,"description":"Bad Request: chat not found"}
+2026-03-10 22:47:13 [ERROR] stock_system - Telegram推送失败: {"ok":false,"error_code":404,"description":"Not Found"}
+2026-03-10 22:52:38 [INFO] stock_system - Telegram推送成功

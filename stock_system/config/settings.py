@@ -88,7 +88,7 @@ class NotifyConfig:
     # Telegram Bot
     telegram_token: str = os.getenv("TELEGRAM_TOKEN", "")
     telegram_chat_id: str = os.getenv("TELEGRAM_CHAT_ID", "")
-    telegram_enabled: bool = False
+    telegram_enabled: bool = bool(os.getenv("TELEGRAM_TOKEN", "") and os.getenv("TELEGRAM_CHAT_ID", ""))
 
     # 邮件通知（备选）
     email_enabled: bool = False
