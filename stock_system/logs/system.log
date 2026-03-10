@@ -9270,3 +9270,9 @@ INFO:     Uvicorn running on http://0.0.0.0:8888 (Press CTRL+C to quit)
 2026-03-10 23:04:53 [INFO] stock_system - Step3: AI板块轮动分析...
 2026-03-10 23:05:14 [INFO] stock_system - 板块分析完成，耗时 22.5s
 2026-03-10 23:05:17 [INFO] stock_system - Telegram推送成功
+2026-03-10 23:16:15 [INFO] stock_system - 今天11:30已过，跳过
+2026-03-10 23:16:15 [INFO] stock_system - 已设置定时推送: 2026-03-11 07:00 (明天07:00)
+2026-03-10 23:16:15 [INFO] stock_system - 等待推送时间...
+2026-03-10 23:17:04 [INFO] stock_system - 已设置定时推送: 2026-03-10 23:30 (今晚23:30)
+2026-03-10 23:17:04 [INFO] stock_system - 已设置定时推送: 2026-03-11 07:00 (明天07:00)
+2026-03-10 23:17:04 [INFO] stock_system - 等待推送时间...
