@@ -137,8 +137,11 @@ class TaskScheduler:
 
             # 推送早报
             if brief:
-                notifier.send_morning_brief(brief)
-                logger.info("市场早报任务完成，已推送")
+                try:
+                    notifier.send_morning_brief(brief)
+                    logger.info("市场早报任务完成，已推送")
+                except Exception as push_error:
+                    logger.error(f"市场早报推送失败: {push_error}", exc_info=True)
             else:
                 logger.warning("市场早报生成失败")
         except Exception as e:

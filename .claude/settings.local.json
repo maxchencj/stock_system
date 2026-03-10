@@ -74,7 +74,8 @@
       "Bash(python3 test_push_now.py)",
       "Bash(xargs kill -9 sleep 2 ps aux)",
       "Bash(kill -9 23201 23925 23860 23832 23795 23760 23697 19871\nsleep 2\nps aux | grep \"main.py\" | grep -v grep)",
-      "Bash(kill -9 23201 23925 23860 23832 23795 23760 23697 19871 2>/dev/null; sleep 2; ps aux | grep \"main.py\" | grep -v grep)"
+      "Bash(kill -9 23201 23925 23860 23832 23795 23760 23697 19871 2>/dev/null; sleep 2; ps aux | grep \"main.py\" | grep -v grep)",
+      "Bash(python3 push_summary.py)"
     ]
   }
 }

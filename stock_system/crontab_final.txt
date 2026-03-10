@@ -1,0 +1,11 @@
+# 股票分析系统 - 自动守护和重启
+# 请手动安装: crontab crontab_final.txt
+
+# 每5分钟检查系统是否运行，如果停止则自动启动
+*/5 * * * * cd /Users/maxchen/Desktop/claudeForStock/stock_system && ./watchdog.sh
+
+# 每天凌晨4点自动重启系统（避免长时间运行导致的问题）
+0 4 * * * cd /Users/maxchen/Desktop/claudeForStock/stock_system && ./restart.sh >> logs/restart.log 2>&1
+
+# 每天早上7:50检查并确保系统在运行（市场早报前10分钟）
+50 7 * * * cd /Users/maxchen/Desktop/claudeForStock/stock_system && ./watchdog.sh
