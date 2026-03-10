@@ -75,7 +75,13 @@
       "Bash(xargs kill -9 sleep 2 ps aux)",
       "Bash(kill -9 23201 23925 23860 23832 23795 23760 23697 19871\nsleep 2\nps aux | grep \"main.py\" | grep -v grep)",
       "Bash(kill -9 23201 23925 23860 23832 23795 23760 23697 19871 2>/dev/null; sleep 2; ps aux | grep \"main.py\" | grep -v grep)",
-      "Bash(python3 push_summary.py)"
+      "Bash(python3 push_summary.py)",
+      "Bash(python3 test_telegram.py)",
+      "Bash(python3 -c \"\nimport os\nfrom dotenv import load_dotenv\nload_dotenv\\(\\)\n\nprint\\('TELEGRAM_TOKEN:', os.getenv\\('TELEGRAM_TOKEN', 'NOT FOUND'\\)[:20] + '...'\\)\nprint\\('TELEGRAM_CHAT_ID:', os.getenv\\('TELEGRAM_CHAT_ID', 'NOT FOUND'\\)\\)\n\nfrom config.settings import config\nprint\\('Config enabled:', config.notify.telegram_enabled\\)\nprint\\('Config token:', config.notify.telegram_token[:20] + '...' if config.notify.telegram_token else 'None'\\)\nprint\\('Config chat_id:', config.notify.telegram_chat_id\\)\n\")",
+      "Bash(python3 -c \"\nimport requests\nimport os\nfrom dotenv import load_dotenv\nload_dotenv\\(\\)\n\ntoken = os.getenv\\('TELEGRAM_TOKEN'\\)\nchat_id = os.getenv\\('TELEGRAM_CHAT_ID'\\)\n\nurl = f'https://api.telegram.org/bot{token}/sendMessage'\ndata = {\n    'chat_id': chat_id,\n    'text': '✅ Telegram推送测试成功！',\n    'parse_mode': 'Markdown'\n}\n\ntry:\n    resp = requests.post\\(url, json=data, timeout=10\\)\n    print\\('Status:', resp.status_code\\)\n    print\\('Response:', resp.json\\(\\)\\)\nexcept Exception as e:\n    print\\('Error:', e\\)\n\")",
+      "Bash(python3 -c \"\nfrom core.scheduler import scheduler\nscheduler.daily_sector_analysis_task\\(\\)\n\")",
+      "Bash(python3 << 'EOF'\nimport os\nimport sys\nfrom dotenv import load_dotenv\nload_dotenv\\(override=True\\)\n\n# 重新导入\nimport importlib\nimport config.settings\nimportlib.reload\\(config.settings\\)\n\nfrom modules.sector.analyzer import sector_analyzer\nfrom notify.notifier import NotificationService\n\n# 创建新的notifier\nnotifier = NotificationService\\(\\)\n\n# 获取今天的板块分析\nresult = sector_analyzer.run_daily_analysis\\(\\)\nreport = sector_analyzer.format_daily_report\\(result\\)\n\nprint\\(f'报告长度: {len\\(report\\)} 字符'\\)\nprint\\('正在推送到Telegram...'\\)\n\n# 推送\nnotifier.send_sector_report\\(report\\)\nprint\\('✅ 推送完成'\\)\nEOF)",
+      "Bash(python3 push_sector_now.py 2>&1 | tail -20)"
     ]
   }
 }

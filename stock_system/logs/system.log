@@ -9213,3 +9213,60 @@ INFO:     Uvicorn running on http://0.0.0.0:8888 (Press CTRL+C to quit)
 2026-03-10 22:46:34 [ERROR] stock_system - Telegram推送失败: {"ok":false,"error_code":400,"description":"Bad Request: chat not found"}
 2026-03-10 22:47:13 [ERROR] stock_system - Telegram推送失败: {"ok":false,"error_code":404,"description":"Not Found"}
 2026-03-10 22:52:38 [INFO] stock_system - Telegram推送成功
+2026-03-10 22:55:35 [INFO] stock_system - AI 引擎使用中转代理: https://hone.vvvv.ee
+2026-03-10 22:55:35 [INFO] stock_system - 加载自选股 4 只
+2026-03-10 22:55:36 [INFO] stock_system - ============================================================
+2026-03-10 22:55:36 [INFO] stock_system - 🚀 股票智能分析系统启动中...
+2026-03-10 22:55:36 [INFO] stock_system - ============================================================
+2026-03-10 22:55:36 [INFO] stock_system - 定时任务调度器已启动
+2026-03-10 22:55:36 [INFO] stock_system - 已注册定时任务 3 个:
+2026-03-10 22:55:36 [INFO] stock_system -   - 市场早报 (ID: morning_brief) | 下次运行: 2026-03-11 08:00:00+08:00
+2026-03-10 22:55:36 [INFO] stock_system -   - 每日选股 (ID: daily_stock_pick) | 下次运行: 2026-03-11 08:30:00+08:00
+2026-03-10 22:55:36 [INFO] stock_system -   - 板块分析 (ID: daily_sector_analysis) | 下次运行: 2026-03-11 17:00:00+08:00
+2026-03-10 22:55:36 [INFO] stock_system - 📡 监控模块已启动，监控 4 只: [603993]洛阳钼业, [000559]万向钱潮, [600550]保变电气, [601138]工业富联
+2026-03-10 22:55:36 [INFO] stock_system - ============================================================
+2026-03-10 22:55:36 [INFO] stock_system - ✅ 系统启动完成
+2026-03-10 22:55:36 [INFO] stock_system - ============================================================
+2026-03-10 22:55:36 [INFO] stock_system - 按 Ctrl+C 停止系统
+2026-03-10 22:57:41 [INFO] stock_system - AI 引擎使用中转代理: https://hone.vvvv.ee
+2026-03-10 22:57:41 [INFO] stock_system - 手动触发市场早报任务...
+2026-03-10 22:57:41 [INFO] stock_system - ============================================================
+2026-03-10 22:57:41 [INFO] stock_system - 执行定时任务: 市场早报
+2026-03-10 22:57:57 [INFO] stock_system - Telegram推送成功
+2026-03-10 22:57:57 [INFO] stock_system - 市场早报任务完成，已推送
+2026-03-10 22:57:57 [INFO] stock_system - 完成！
+2026-03-10 22:59:06 [INFO] stock_system - AI 引擎使用中转代理: https://hone.vvvv.ee
+2026-03-10 22:59:06 [INFO] stock_system - ============================================================
+2026-03-10 22:59:06 [INFO] stock_system - 执行定时任务: 板块分析
+2026-03-10 22:59:06 [INFO] stock_system - ==================================================
+2026-03-10 22:59:06 [INFO] stock_system - 开始每日板块分析...
+2026-03-10 22:59:06 [INFO] stock_system - Step1: 获取板块行情...
+2026-03-10 22:59:06 [INFO] stock_system - 获取板块实时行情 22 个 (腾讯)
+2026-03-10 22:59:06 [INFO] stock_system - 获取板块 22 个
+2026-03-10 22:59:06 [INFO] stock_system - Step2: 获取资金流向...
+2026-03-10 22:59:07 [ERROR] stock_system - 获取板块资金流向失败: Length mismatch: Expected axis has 11 elements, new values have 8 elements
+2026-03-10 22:59:07 [INFO] stock_system - Step3: AI板块轮动分析...
+2026-03-10 22:59:29 [INFO] stock_system - 板块分析完成，耗时 23.4s
+2026-03-10 22:59:29 [INFO] stock_system - 板块分析任务完成，已推送报告
+2026-03-10 23:03:00 [INFO] stock_system - AI 引擎使用中转代理: https://hone.vvvv.ee
+2026-03-10 23:03:00 [INFO] stock_system - ==================================================
+2026-03-10 23:03:00 [INFO] stock_system - 开始每日板块分析...
+2026-03-10 23:03:00 [INFO] stock_system - Step1: 获取板块行情...
+2026-03-10 23:03:00 [INFO] stock_system - 获取板块实时行情 22 个 (腾讯)
+2026-03-10 23:03:00 [INFO] stock_system - 获取板块 22 个
+2026-03-10 23:03:00 [INFO] stock_system - Step2: 获取资金流向...
+2026-03-10 23:03:00 [ERROR] stock_system - 获取板块资金流向失败: Length mismatch: Expected axis has 11 elements, new values have 8 elements
+2026-03-10 23:03:00 [INFO] stock_system - Step3: AI板块轮动分析...
+2026-03-10 23:03:24 [INFO] stock_system - 板块分析完成，耗时 24.5s
+2026-03-10 23:04:07 [INFO] stock_system - Telegram推送成功
+2026-03-10 23:04:52 [INFO] stock_system - AI 引擎使用中转代理: https://hone.vvvv.ee
+2026-03-10 23:04:52 [INFO] stock_system - ==================================================
+2026-03-10 23:04:52 [INFO] stock_system - 开始每日板块分析...
+2026-03-10 23:04:52 [INFO] stock_system - Step1: 获取板块行情...
+2026-03-10 23:04:52 [INFO] stock_system - 获取板块实时行情 22 个 (腾讯)
+2026-03-10 23:04:52 [INFO] stock_system - 获取板块 22 个
+2026-03-10 23:04:52 [INFO] stock_system - Step2: 获取资金流向...
+2026-03-10 23:04:53 [ERROR] stock_system - 获取板块资金流向失败: Length mismatch: Expected axis has 11 elements, new values have 8 elements
+2026-03-10 23:04:53 [INFO] stock_system - Step3: AI板块轮动分析...
+2026-03-10 23:05:14 [INFO] stock_system - 板块分析完成，耗时 22.5s
+2026-03-10 23:05:17 [INFO] stock_system - Telegram推送成功
