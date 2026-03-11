@@ -26,10 +26,10 @@ class TaskScheduler:
             logger.warning("调度器已在运行")
             return
 
-        # 每日选股任务（交易日早上8:30）
+        # 每日选股任务（交易日早上9:45）
         self.scheduler.add_job(
             self.daily_stock_pick_task,
-            CronTrigger(hour=8, minute=30, day_of_week="mon-fri"),
+            CronTrigger(hour=9, minute=45, day_of_week="mon-fri"),
             id="daily_stock_pick",
             name="每日选股",
             replace_existing=True

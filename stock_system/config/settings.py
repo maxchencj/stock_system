@@ -37,7 +37,7 @@ class StockPickerConfig:
     """选股模块配置"""
     # 每日选股时间
     scan_time: str = "09:30"
-    push_time: str = "08:30"
+    push_time: str = "09:45"
 
     # 筛选条件（已放宽，适应更多股票）
     min_market_cap: float = 3.0    # 最小市值(亿) - 降低门槛

@@ -1,6 +1,5 @@
 """
-数据层 - 多数据源支持（腾讯财经 + AKShare 兜底）
-解决东方财富限流问题
+数据层 - AKShare 主数据源
 """
 import time
 import re
@@ -225,7 +224,7 @@ class MarketDataService:
     @staticmethod
     @cached(ttl=30)
     def get_realtime_quotes(codes: Optional[List[str]] = None) -> pd.DataFrame:
-        """获取实时行情 - 腾讯优先 + AKShare兜底"""
+        """获取实时行情 - AKShare"""
 
         # 确定需要查询的股票列表
         if not codes:
@@ -234,15 +233,7 @@ class MarketDataService:
                 return pd.DataFrame()
             codes = stock_df["code"].tolist()
 
-        # 方法1: 腾讯财经（已验证可用）
-        df = TencentAPI.get_batch_quotes(codes)
-        if not df.empty:
-            # 过滤无效数据（停牌、退市等）
-            df = df[df["price"] > 0].copy()
-            logger.info(f"获取实时行情 {len(df)} 只 (腾讯)")
-            return df.reset_index(drop=True)
-
-        # 方法2: AKShare 兜底
+        # AKShare 主数据源
         if ak:
             try:
                 df = ak.stock_zh_a_spot_em()
@@ -265,12 +256,13 @@ class MarketDataService:
                     for col in num_cols:
                         if col in df.columns:
                             df[col] = pd.to_numeric(df[col], errors="coerce")
+                    df = df[df["price"] > 0].copy()
                     logger.info(f"获取实时行情 {len(df)} 只 (AKShare)")
-                    return df
+                    return df.reset_index(drop=True)
             except Exception as e:
                 logger.warning(f"AKShare实时行情失败: {str(e)[:80]}")
 
-        logger.error("所有行情接口均失败")
+        logger.error("行情接口失败")
         return pd.DataFrame()
 
     @staticmethod
@@ -334,46 +326,7 @@ class SectorDataService:
     @staticmethod
     @cached(ttl=120)
     def get_sector_realtime() -> pd.DataFrame:
-        """获取行业板块实时行情 - 腾讯优先"""
-        # 方法1: 腾讯申万行业指数
-        try:
-            codes_str = ','.join(SW_INDUSTRY_INDEX.keys())
-            r = _session.get(TencentAPI.BASE + codes_str, timeout=15)
-            r.encoding = 'gbk'
-
-            sectors = []
-            for line in r.text.strip().split('\n'):
-                if '="";' in line or not line.strip():
-                    continue
-                try:
-                    code_match = re.search(r'v_(\w+)=', line)
-                    if not code_match:
-                        continue
-                    code = code_match.group(1)
-                    parts = line.split('"')[1].split('~')
-                    name = SW_INDUSTRY_INDEX.get(code, parts[1])
-                    close = float(parts[3]) if parts[3] else 0
-                    prev = float(parts[4]) if parts[4] else 0
-                    if close == 0 or prev == 0:
-                        continue
-                    chg = round((close - prev) / prev * 100, 2)
-                    sectors.append({
-                        "name": name,
-                        "code": code,
-                        "price": close,
-                        "change_pct": chg,
-                    })
-                except:
-                    continue
-
-            if sectors:
-                df = pd.DataFrame(sectors).sort_values("change_pct", ascending=False)
-                logger.info(f"获取板块实时行情 {len(df)} 个 (腾讯)")
-                return df.reset_index(drop=True)
-        except Exception as e:
-            logger.warning(f"腾讯板块接口失败: {str(e)[:80]}")
-
-        # 方法2: AKShare 兜底
+        """获取行业板块实时行情 - AKShare"""
         if ak:
             try:
                 df = ak.stock_board_industry_name_em()
@@ -383,7 +336,7 @@ class SectorDataService:
             except Exception as e:
                 logger.warning(f"AKShare板块接口失败: {str(e)[:80]}")
 
-        logger.error("所有板块接口均失败")
+        logger.error("板块接口失败")
         return pd.DataFrame()
 
     @staticmethod
