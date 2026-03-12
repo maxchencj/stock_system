@@ -224,7 +224,7 @@ class MarketDataService:
     @staticmethod
     @cached(ttl=30)
     def get_realtime_quotes(codes: Optional[List[str]] = None) -> pd.DataFrame:
-        """获取实时行情 - AKShare"""
+        """获取实时行情 - 腾讯财经（主）+ AKShare（备用）"""
 
         # 确定需要查询的股票列表
         if not codes:
@@ -233,7 +233,16 @@ class MarketDataService:
                 return pd.DataFrame()
             codes = stock_df["code"].tolist()
 
-        # AKShare 主数据源
+        # 方法1: 腾讯财经接口（主数据源）
+        try:
+            df = TencentAPI.get_batch_quotes(codes)
+            if not df.empty:
+                logger.info(f"获取实时行情 {len(df)} 只 (腾讯财经)")
+                return df
+        except Exception as e:
+            logger.warning(f"腾讯财经实时行情失败: {str(e)[:80]}")
+
+        # 方法2: AKShare 备用数据源
         if ak:
             try:
                 df = ak.stock_zh_a_spot_em()
@@ -257,12 +266,12 @@ class MarketDataService:
                         if col in df.columns:
                             df[col] = pd.to_numeric(df[col], errors="coerce")
                     df = df[df["price"] > 0].copy()
-                    logger.info(f"获取实时行情 {len(df)} 只 (AKShare)")
+                    logger.info(f"获取实时行情 {len(df)} 只 (AKShare备用)")
                     return df.reset_index(drop=True)
             except Exception as e:
                 logger.warning(f"AKShare实时行情失败: {str(e)[:80]}")
 
-        logger.error("行情接口失败")
+        logger.error("所有行情接口失败")
         return pd.DataFrame()
 
     @staticmethod

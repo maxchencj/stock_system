@@ -53,6 +53,15 @@ class TaskScheduler:
             replace_existing=True
         )
 
+        # 实时行情推送（交易日9:30-15:00，每1分钟）
+        self.scheduler.add_job(
+            self.realtime_market_push_task,
+            CronTrigger(hour="9-14", minute="*", day_of_week="mon-fri"),
+            id="realtime_market_push",
+            name="实时行情推送",
+            replace_existing=True
+        )
+
         self.scheduler.start()
         self.running = True
         logger.info("定时任务调度器已启动")
@@ -156,6 +165,117 @@ class TaskScheduler:
     def trigger_sector_analysis(self):
         """手动触发板块分析"""
         self.daily_sector_analysis_task()
+
+    def realtime_market_push_task(self):
+        """实时行情推送任务"""
+        now = datetime.now()
+        hour = now.hour
+        minute = now.minute
+
+        # 只在交易时间内推送（9:30-15:00）
+        if hour < 9 or (hour == 9 and minute < 30) or hour >= 15:
+            return
+
+        logger.info("执行实时行情推送")
+        try:
+            from data.data_service import market_service
+
+            # 获取关注股票列表（可以从配置或数据库读取）
+            # 这里先用一个示例列表，你可以根据需要修改
+            watch_codes = self._get_watchlist()
+
+            if not watch_codes:
+                logger.warning("关注列表为空，跳过推送")
+                return
+
+            # 获取实时行情
+            df = market_service.get_realtime_quotes(watch_codes)
+
+            if df.empty:
+                logger.warning("未获取到实时行情数据")
+                return
+
+            # 格式化推送内容
+            report = self._format_realtime_report(df, now)
+
+            # 推送到 Telegram
+            notifier.telegram.send(report)
+            logger.info(f"实时行情推送完成，共{len(df)}只股票")
+
+        except Exception as e:
+            logger.error(f"实时行情推送失败: {e}", exc_info=True)
+
+    def _get_watchlist(self):
+        """获取关注股票列表"""
+        # 方法1: 从配置文件读取
+        watchlist_file = "data/watchlist.txt"
+        try:
+            import os
+            if os.path.exists(watchlist_file):
+                codes = []
+                with open(watchlist_file, 'r') as f:
+                    for line in f:
+                        line = line.strip()
+                        if line and not line.startswith('#'):
+                            # 只取代码部分，去掉注释
+                            code = line.split('#')[0].strip()
+                            if code:
+                                codes.append(code)
+                if codes:
+                    return codes
+        except Exception as e:
+            logger.warning(f"读取关注列表失败: {e}")
+
+        # 方法2: 使用默认热门股票
+        return [
+            "600519",  # 贵州茅台
+            "601318",  # 中国平安
+            "000858",  # 五粮液
+            "600036",  # 招商银行
+            "300750",  # 宁德时代
+            "002594",  # 比亚迪
+            "600276",  # 恒瑞医药
+            "000333",  # 美的集团
+            "002415",  # 海康威视
+            "600887",  # 伊利股份
+        ]
+
+    def _format_realtime_report(self, df, timestamp):
+        """格式化实时行情报告"""
+        lines = [
+            f"⏰ {timestamp.strftime('%H:%M')} 实时行情",
+            f"━━━━━━━━━━━━━━━━",
+            ""
+        ]
+
+        # 按涨跌幅排序
+        df = df.sort_values('change_pct', ascending=False)
+
+        for _, row in df.iterrows():
+            code = row.get('code', '')
+            name = row.get('name', '')
+            price = row.get('price', 0)
+            change_pct = row.get('change_pct', 0)
+            volume_ratio = row.get('volume_ratio', 0)
+
+            # 涨跌标识
+            if change_pct > 0:
+                icon = "🔴"
+                sign = "+"
+            elif change_pct < 0:
+                icon = "🟢"
+                sign = ""
+            else:
+                icon = "⚪"
+                sign = ""
+
+            lines.append(f"{icon} {name}({code})")
+            lines.append(f"   价格: {price:.2f}  {sign}{change_pct:.2f}%")
+            if volume_ratio > 0:
+                lines.append(f"   量比: {volume_ratio:.2f}")
+            lines.append("")
+
+        return "\n".join(lines)
 
 
 # 单例

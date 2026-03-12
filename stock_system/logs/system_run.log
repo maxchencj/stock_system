@@ -13,3 +13,1027 @@
 2026-03-11 22:57:41 [INFO] stock_system - ✅ 系统启动完成
 2026-03-11 22:57:41 [INFO] stock_system - ============================================================
 2026-03-11 22:57:41 [INFO] stock_system - 按 Ctrl+C 停止系统
+2026-03-12 08:00:00 [INFO] stock_system - ============================================================
+2026-03-12 08:00:00 [INFO] stock_system - 执行定时任务: 市场早报
+2026-03-12 08:00:10 [INFO] stock_system - 市场早报任务完成，已推送
+2026-03-12 09:15:45 [INFO] stock_system - 📡 检查自选股 4 只...
+  0%|          | 0/58 [00:00<?, ?it/s]  2%|▏         | 1/58 [00:01<01:25,  1.50s/it]  3%|▎         | 2/58 [00:03<01:24,  1.50s/it]  5%|▌         | 3/58 [00:03<01:04,  1.17s/it]  7%|▋         | 4/58 [00:04<00:54,  1.01s/it]                                              2026-03-12 09:15:56 [WARNING] stock_system - AKShare实时行情失败: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without
+2026-03-12 09:15:56 [ERROR] stock_system - 行情接口失败
+2026-03-12 09:15:56 [WARNING] stock_system - 未获取到行情数据
+2026-03-12 09:16:56 [INFO] stock_system - 📡 检查自选股 4 只...
+2026-03-12 09:17:01 [WARNING] stock_system - AKShare实时行情失败: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without
+2026-03-12 09:17:01 [ERROR] stock_system - 行情接口失败
+2026-03-12 09:17:01 [WARNING] stock_system - 未获取到行情数据
+2026-03-12 09:18:01 [INFO] stock_system - 📡 检查自选股 4 只...
+2026-03-12 09:18:07 [WARNING] stock_system - AKShare实时行情失败: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without
+2026-03-12 09:18:07 [ERROR] stock_system - 行情接口失败
+2026-03-12 09:18:07 [WARNING] stock_system - 未获取到行情数据
+2026-03-12 09:19:07 [INFO] stock_system - 📡 检查自选股 4 只...
+2026-03-12 09:19:12 [WARNING] stock_system - AKShare实时行情失败: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without
+2026-03-12 09:19:12 [ERROR] stock_system - 行情接口失败
+2026-03-12 09:19:12 [WARNING] stock_system - 未获取到行情数据
+2026-03-12 09:20:12 [INFO] stock_system - 📡 检查自选股 4 只...
+2026-03-12 09:20:18 [WARNING] stock_system - AKShare实时行情失败: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without
+2026-03-12 09:20:18 [ERROR] stock_system - 行情接口失败
+2026-03-12 09:20:18 [WARNING] stock_system - 未获取到行情数据
+2026-03-12 09:21:18 [INFO] stock_system - 📡 检查自选股 4 只...
+2026-03-12 09:21:23 [WARNING] stock_system - AKShare实时行情失败: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without
+2026-03-12 09:21:23 [ERROR] stock_system - 行情接口失败
+2026-03-12 09:21:23 [WARNING] stock_system - 未获取到行情数据
+2026-03-12 09:22:23 [INFO] stock_system - 📡 检查自选股 4 只...
+2026-03-12 09:22:30 [WARNING] stock_system - AKShare实时行情失败: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without
+2026-03-12 09:22:30 [ERROR] stock_system - 行情接口失败
+2026-03-12 09:22:30 [WARNING] stock_system - 未获取到行情数据
+2026-03-12 09:23:30 [INFO] stock_system - 📡 检查自选股 4 只...
+2026-03-12 09:23:36 [WARNING] stock_system - AKShare实时行情失败: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without
+2026-03-12 09:23:36 [ERROR] stock_system - 行情接口失败
+2026-03-12 09:23:36 [WARNING] stock_system - 未获取到行情数据
+2026-03-12 09:24:36 [INFO] stock_system - 📡 检查自选股 4 只...
+2026-03-12 09:24:41 [WARNING] stock_system - AKShare实时行情失败: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without
+2026-03-12 09:24:41 [ERROR] stock_system - 行情接口失败
+2026-03-12 09:24:41 [WARNING] stock_system - 未获取到行情数据
+2026-03-12 09:25:41 [INFO] stock_system - 📡 检查自选股 4 只...
+2026-03-12 09:25:47 [WARNING] stock_system - AKShare实时行情失败: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without
+2026-03-12 09:25:47 [ERROR] stock_system - 行情接口失败
+2026-03-12 09:25:47 [WARNING] stock_system - 未获取到行情数据
+2026-03-12 09:26:47 [INFO] stock_system - 📡 检查自选股 4 只...
+2026-03-12 09:26:53 [WARNING] stock_system - AKShare实时行情失败: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without
+2026-03-12 09:26:53 [ERROR] stock_system - 行情接口失败
+2026-03-12 09:26:53 [WARNING] stock_system - 未获取到行情数据
+2026-03-12 09:27:53 [INFO] stock_system - 📡 检查自选股 4 只...
+2026-03-12 09:27:58 [WARNING] stock_system - AKShare实时行情失败: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without
+2026-03-12 09:27:58 [ERROR] stock_system - 行情接口失败
+2026-03-12 09:27:58 [WARNING] stock_system - 未获取到行情数据
+2026-03-12 09:28:58 [INFO] stock_system - 📡 检查自选股 4 只...
+2026-03-12 09:29:04 [WARNING] stock_system - AKShare实时行情失败: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without
+2026-03-12 09:29:04 [ERROR] stock_system - 行情接口失败
+2026-03-12 09:29:04 [WARNING] stock_system - 未获取到行情数据
+2026-03-12 09:30:04 [INFO] stock_system - 📡 检查自选股 4 只...
+2026-03-12 09:30:10 [WARNING] stock_system - AKShare实时行情失败: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without
+2026-03-12 09:30:10 [ERROR] stock_system - 行情接口失败
+2026-03-12 09:30:10 [WARNING] stock_system - 未获取到行情数据
+2026-03-12 09:31:10 [INFO] stock_system - 📡 检查自选股 4 只...
+2026-03-12 09:31:15 [WARNING] stock_system - AKShare实时行情失败: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without
+2026-03-12 09:31:15 [ERROR] stock_system - 行情接口失败
+2026-03-12 09:31:15 [WARNING] stock_system - 未获取到行情数据
+2026-03-12 09:32:15 [INFO] stock_system - 📡 检查自选股 4 只...
+2026-03-12 09:32:21 [WARNING] stock_system - AKShare实时行情失败: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without
+2026-03-12 09:32:21 [ERROR] stock_system - 行情接口失败
+2026-03-12 09:32:21 [WARNING] stock_system - 未获取到行情数据
+2026-03-12 09:33:21 [INFO] stock_system - 📡 检查自选股 4 只...
+2026-03-12 09:33:28 [WARNING] stock_system - AKShare实时行情失败: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without
+2026-03-12 09:33:28 [ERROR] stock_system - 行情接口失败
+2026-03-12 09:33:28 [WARNING] stock_system - 未获取到行情数据
+2026-03-12 09:34:28 [INFO] stock_system - 📡 检查自选股 4 只...
+2026-03-12 09:34:33 [WARNING] stock_system - AKShare实时行情失败: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without
+2026-03-12 09:34:33 [ERROR] stock_system - 行情接口失败
+2026-03-12 09:34:33 [WARNING] stock_system - 未获取到行情数据
+2026-03-12 09:35:33 [INFO] stock_system - 📡 检查自选股 4 只...
+2026-03-12 09:35:39 [WARNING] stock_system - AKShare实时行情失败: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without
+2026-03-12 09:35:39 [ERROR] stock_system - 行情接口失败
+2026-03-12 09:35:39 [WARNING] stock_system - 未获取到行情数据
+2026-03-12 09:36:39 [INFO] stock_system - 📡 检查自选股 4 只...
+2026-03-12 09:36:44 [WARNING] stock_system - AKShare实时行情失败: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without
+2026-03-12 09:36:44 [ERROR] stock_system - 行情接口失败
+2026-03-12 09:36:44 [WARNING] stock_system - 未获取到行情数据
+2026-03-12 09:37:44 [INFO] stock_system - 📡 检查自选股 4 只...
+2026-03-12 09:37:50 [WARNING] stock_system - AKShare实时行情失败: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without
+2026-03-12 09:37:50 [ERROR] stock_system - 行情接口失败
+2026-03-12 09:37:50 [WARNING] stock_system - 未获取到行情数据
+2026-03-12 09:38:50 [INFO] stock_system - 📡 检查自选股 4 只...
+2026-03-12 09:38:56 [WARNING] stock_system - AKShare实时行情失败: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without
+2026-03-12 09:38:56 [ERROR] stock_system - 行情接口失败
+2026-03-12 09:38:56 [WARNING] stock_system - 未获取到行情数据
+2026-03-12 09:39:56 [INFO] stock_system - 📡 检查自选股 4 只...
+2026-03-12 09:40:02 [WARNING] stock_system - AKShare实时行情失败: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without
+2026-03-12 09:40:02 [ERROR] stock_system - 行情接口失败
+2026-03-12 09:40:02 [WARNING] stock_system - 未获取到行情数据
+2026-03-12 09:41:02 [INFO] stock_system - 📡 检查自选股 4 只...
+2026-03-12 09:41:07 [WARNING] stock_system - AKShare实时行情失败: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without
+2026-03-12 09:41:07 [ERROR] stock_system - 行情接口失败
+2026-03-12 09:41:07 [WARNING] stock_system - 未获取到行情数据
+2026-03-12 09:42:07 [INFO] stock_system - 📡 检查自选股 4 只...
+2026-03-12 09:42:12 [WARNING] stock_system - AKShare实时行情失败: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without
+2026-03-12 09:42:12 [ERROR] stock_system - 行情接口失败
+2026-03-12 09:42:12 [WARNING] stock_system - 未获取到行情数据
+2026-03-12 09:43:12 [INFO] stock_system - 📡 检查自选股 4 只...
+2026-03-12 09:43:18 [WARNING] stock_system - AKShare实时行情失败: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without
+2026-03-12 09:43:18 [ERROR] stock_system - 行情接口失败
+2026-03-12 09:43:18 [WARNING] stock_system - 未获取到行情数据
+2026-03-12 09:44:18 [INFO] stock_system - 📡 检查自选股 4 只...
+2026-03-12 09:44:24 [WARNING] stock_system - AKShare实时行情失败: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without
+2026-03-12 09:44:24 [ERROR] stock_system - 行情接口失败
+2026-03-12 09:44:24 [WARNING] stock_system - 未获取到行情数据
+2026-03-12 09:45:00 [INFO] stock_system - ============================================================
+2026-03-12 09:45:00 [INFO] stock_system - 执行定时任务: 每日选股
+2026-03-12 09:45:00 [INFO] stock_system - ==================================================
+2026-03-12 09:45:00 [INFO] stock_system - 开始每日选股扫描...
+2026-03-12 09:45:00 [INFO] stock_system - Step1: 获取全市场行情...
+  0%|          | 0/15 [00:00<?, ?it/s]  7%|▋         | 1/15 [00:00<00:02,  5.03it/s] 13%|█▎        | 2/15 [00:00<00:02,  5.24it/s] 20%|██        | 3/15 [00:00<00:02,  5.07it/s] 27%|██▋       | 4/15 [00:00<00:02,  5.19it/s] 33%|███▎      | 5/15 [00:00<00:01,  5.34it/s] 40%|████      | 6/15 [00:01<00:01,  5.30it/s] 47%|████▋     | 7/15 [00:01<00:01,  5.16it/s] 53%|█████▎    | 8/15 [00:01<00:01,  5.13it/s] 60%|██████    | 9/15 [00:01<00:01,  5.03it/s] 67%|██████▋   | 10/15 [00:01<00:01,  5.00it/s] 73%|███████▎  | 11/15 [00:02<00:01,  3.76it/s] 80%|████████  | 12/15 [00:02<00:00,  4.04it/s] 87%|████████▋ | 13/15 [00:02<00:00,  4.25it/s] 93%|█████████▎| 14/15 [00:02<00:00,  4.44it/s]100%|██████████| 15/15 [00:03<00:00,  4.59it/s]                                               2026-03-12 09:45:06 [INFO] stock_system - 获取全市场股票 5013 只 (AKShare)
+2026-03-12 09:45:12 [WARNING] stock_system - AKShare实时行情失败: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without
+2026-03-12 09:45:12 [ERROR] stock_system - 行情接口失败
+2026-03-12 09:45:12 [WARNING] stock_system - 选股任务状态异常: no_data
+2026-03-12 09:45:24 [INFO] stock_system - 📡 检查自选股 4 只...
+2026-03-12 09:45:29 [WARNING] stock_system - AKShare实时行情失败: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without
+2026-03-12 09:45:29 [ERROR] stock_system - 行情接口失败
+2026-03-12 09:45:29 [WARNING] stock_system - 未获取到行情数据
+2026-03-12 09:46:29 [INFO] stock_system - 📡 检查自选股 4 只...
+2026-03-12 09:46:33 [WARNING] stock_system - AKShare实时行情失败: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without
+2026-03-12 09:46:33 [ERROR] stock_system - 行情接口失败
+2026-03-12 09:46:33 [WARNING] stock_system - 未获取到行情数据
+2026-03-12 09:47:33 [INFO] stock_system - 📡 检查自选股 4 只...
+2026-03-12 09:47:39 [WARNING] stock_system - AKShare实时行情失败: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without
+2026-03-12 09:47:39 [ERROR] stock_system - 行情接口失败
+2026-03-12 09:47:39 [WARNING] stock_system - 未获取到行情数据
+2026-03-12 09:48:39 [INFO] stock_system - 📡 检查自选股 4 只...
+2026-03-12 09:48:45 [WARNING] stock_system - AKShare实时行情失败: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without
+2026-03-12 09:48:45 [ERROR] stock_system - 行情接口失败
+2026-03-12 09:48:45 [WARNING] stock_system - 未获取到行情数据
+2026-03-12 09:49:45 [INFO] stock_system - 📡 检查自选股 4 只...
+2026-03-12 09:49:50 [WARNING] stock_system - AKShare实时行情失败: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without
+2026-03-12 09:49:50 [ERROR] stock_system - 行情接口失败
+2026-03-12 09:49:50 [WARNING] stock_system - 未获取到行情数据
+2026-03-12 09:50:50 [INFO] stock_system - 📡 检查自选股 4 只...
+2026-03-12 09:50:55 [WARNING] stock_system - AKShare实时行情失败: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without
+2026-03-12 09:50:55 [ERROR] stock_system - 行情接口失败
+2026-03-12 09:50:55 [WARNING] stock_system - 未获取到行情数据
+2026-03-12 09:51:55 [INFO] stock_system - 📡 检查自选股 4 只...
+2026-03-12 09:52:01 [WARNING] stock_system - AKShare实时行情失败: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without
+2026-03-12 09:52:01 [ERROR] stock_system - 行情接口失败
+2026-03-12 09:52:01 [WARNING] stock_system - 未获取到行情数据
+2026-03-12 09:53:01 [INFO] stock_system - 📡 检查自选股 4 只...
+2026-03-12 09:53:08 [WARNING] stock_system - AKShare实时行情失败: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without
+2026-03-12 09:53:08 [ERROR] stock_system - 行情接口失败
+2026-03-12 09:53:08 [WARNING] stock_system - 未获取到行情数据
+2026-03-12 09:54:08 [INFO] stock_system - 📡 检查自选股 4 只...
+2026-03-12 09:54:13 [WARNING] stock_system - AKShare实时行情失败: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without
+2026-03-12 09:54:13 [ERROR] stock_system - 行情接口失败
+2026-03-12 09:54:13 [WARNING] stock_system - 未获取到行情数据
+2026-03-12 09:55:13 [INFO] stock_system - 📡 检查自选股 4 只...
+2026-03-12 09:55:18 [WARNING] stock_system - AKShare实时行情失败: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without
+2026-03-12 09:55:18 [ERROR] stock_system - 行情接口失败
+2026-03-12 09:55:18 [WARNING] stock_system - 未获取到行情数据
+2026-03-12 09:56:18 [INFO] stock_system - 📡 检查自选股 4 只...
+2026-03-12 09:56:25 [WARNING] stock_system - AKShare实时行情失败: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without
+2026-03-12 09:56:25 [ERROR] stock_system - 行情接口失败
+2026-03-12 09:56:25 [WARNING] stock_system - 未获取到行情数据
+2026-03-12 09:57:25 [INFO] stock_system - 📡 检查自选股 4 只...
+2026-03-12 09:57:30 [WARNING] stock_system - AKShare实时行情失败: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without
+2026-03-12 09:57:30 [ERROR] stock_system - 行情接口失败
+2026-03-12 09:57:30 [WARNING] stock_system - 未获取到行情数据
+2026-03-12 09:58:30 [INFO] stock_system - 📡 检查自选股 4 只...
+2026-03-12 09:58:37 [WARNING] stock_system - AKShare实时行情失败: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without
+2026-03-12 09:58:37 [ERROR] stock_system - 行情接口失败
+2026-03-12 09:58:37 [WARNING] stock_system - 未获取到行情数据
+2026-03-12 09:59:37 [INFO] stock_system - 📡 检查自选股 4 只...
+2026-03-12 09:59:43 [WARNING] stock_system - AKShare实时行情失败: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without
+2026-03-12 09:59:43 [ERROR] stock_system - 行情接口失败
+2026-03-12 09:59:43 [WARNING] stock_system - 未获取到行情数据
+2026-03-12 10:00:43 [INFO] stock_system - 📡 检查自选股 4 只...
+2026-03-12 10:00:48 [WARNING] stock_system - AKShare实时行情失败: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without
+2026-03-12 10:00:48 [ERROR] stock_system - 行情接口失败
+2026-03-12 10:00:48 [WARNING] stock_system - 未获取到行情数据
+2026-03-12 10:01:48 [INFO] stock_system - 📡 检查自选股 4 只...
+2026-03-12 10:01:54 [WARNING] stock_system - AKShare实时行情失败: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without
+2026-03-12 10:01:54 [ERROR] stock_system - 行情接口失败
+2026-03-12 10:01:54 [WARNING] stock_system - 未获取到行情数据
+2026-03-12 10:02:54 [INFO] stock_system - 📡 检查自选股 4 只...
+2026-03-12 10:03:00 [WARNING] stock_system - AKShare实时行情失败: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without
+2026-03-12 10:03:00 [ERROR] stock_system - 行情接口失败
+2026-03-12 10:03:00 [WARNING] stock_system - 未获取到行情数据
+2026-03-12 10:04:00 [INFO] stock_system - 📡 检查自选股 4 只...
+2026-03-12 10:04:05 [WARNING] stock_system - AKShare实时行情失败: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without
+2026-03-12 10:04:05 [ERROR] stock_system - 行情接口失败
+2026-03-12 10:04:05 [WARNING] stock_system - 未获取到行情数据
+2026-03-12 10:05:05 [INFO] stock_system - 📡 检查自选股 4 只...
+2026-03-12 10:05:11 [WARNING] stock_system - AKShare实时行情失败: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without
+2026-03-12 10:05:11 [ERROR] stock_system - 行情接口失败
+2026-03-12 10:05:11 [WARNING] stock_system - 未获取到行情数据
+2026-03-12 10:06:11 [INFO] stock_system - 📡 检查自选股 4 只...
+2026-03-12 10:06:17 [WARNING] stock_system - AKShare实时行情失败: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without
+2026-03-12 10:06:17 [ERROR] stock_system - 行情接口失败
+2026-03-12 10:06:17 [WARNING] stock_system - 未获取到行情数据
+2026-03-12 10:07:17 [INFO] stock_system - 📡 检查自选股 4 只...
+2026-03-12 10:07:22 [WARNING] stock_system - AKShare实时行情失败: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without
+2026-03-12 10:07:22 [ERROR] stock_system - 行情接口失败
+2026-03-12 10:07:22 [WARNING] stock_system - 未获取到行情数据
+2026-03-12 10:08:22 [INFO] stock_system - 📡 检查自选股 4 只...
+2026-03-12 10:08:27 [WARNING] stock_system - AKShare实时行情失败: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without
+2026-03-12 10:08:27 [ERROR] stock_system - 行情接口失败
+2026-03-12 10:08:27 [WARNING] stock_system - 未获取到行情数据
+2026-03-12 10:09:27 [INFO] stock_system - 📡 检查自选股 4 只...
+2026-03-12 10:09:32 [WARNING] stock_system - AKShare实时行情失败: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without
+2026-03-12 10:09:32 [ERROR] stock_system - 行情接口失败
+2026-03-12 10:09:32 [WARNING] stock_system - 未获取到行情数据
+2026-03-12 10:10:32 [INFO] stock_system - 📡 检查自选股 4 只...
+2026-03-12 10:10:37 [WARNING] stock_system - AKShare实时行情失败: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without
+2026-03-12 10:10:37 [ERROR] stock_system - 行情接口失败
+2026-03-12 10:10:37 [WARNING] stock_system - 未获取到行情数据
+2026-03-12 10:11:37 [INFO] stock_system - 📡 检查自选股 4 只...
+2026-03-12 10:11:43 [WARNING] stock_system - AKShare实时行情失败: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without
+2026-03-12 10:11:43 [ERROR] stock_system - 行情接口失败
+2026-03-12 10:11:43 [WARNING] stock_system - 未获取到行情数据
+2026-03-12 10:12:43 [INFO] stock_system - 📡 检查自选股 4 只...
+2026-03-12 10:12:48 [WARNING] stock_system - AKShare实时行情失败: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without
+2026-03-12 10:12:48 [ERROR] stock_system - 行情接口失败
+2026-03-12 10:12:48 [WARNING] stock_system - 未获取到行情数据
+2026-03-12 10:13:48 [INFO] stock_system - 📡 检查自选股 4 只...
+2026-03-12 10:13:55 [WARNING] stock_system - AKShare实时行情失败: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without
+2026-03-12 10:13:55 [ERROR] stock_system - 行情接口失败
+2026-03-12 10:13:55 [WARNING] stock_system - 未获取到行情数据
+2026-03-12 10:14:55 [INFO] stock_system - 📡 检查自选股 4 只...
+2026-03-12 10:15:01 [WARNING] stock_system - AKShare实时行情失败: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without
+2026-03-12 10:15:01 [ERROR] stock_system - 行情接口失败
+2026-03-12 10:15:01 [WARNING] stock_system - 未获取到行情数据
+2026-03-12 10:16:01 [INFO] stock_system - 📡 检查自选股 4 只...
+2026-03-12 10:16:06 [WARNING] stock_system - AKShare实时行情失败: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without
+2026-03-12 10:16:06 [ERROR] stock_system - 行情接口失败
+2026-03-12 10:16:06 [WARNING] stock_system - 未获取到行情数据
+2026-03-12 10:17:06 [INFO] stock_system - 📡 检查自选股 4 只...
+2026-03-12 10:17:12 [WARNING] stock_system - AKShare实时行情失败: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without
+2026-03-12 10:17:12 [ERROR] stock_system - 行情接口失败
+2026-03-12 10:17:12 [WARNING] stock_system - 未获取到行情数据
+2026-03-12 10:18:12 [INFO] stock_system - 📡 检查自选股 4 只...
+2026-03-12 10:18:18 [WARNING] stock_system - AKShare实时行情失败: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without
+2026-03-12 10:18:18 [ERROR] stock_system - 行情接口失败
+2026-03-12 10:18:18 [WARNING] stock_system - 未获取到行情数据
+2026-03-12 10:19:18 [INFO] stock_system - 📡 检查自选股 4 只...
+2026-03-12 10:19:23 [WARNING] stock_system - AKShare实时行情失败: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without
+2026-03-12 10:19:23 [ERROR] stock_system - 行情接口失败
+2026-03-12 10:19:23 [WARNING] stock_system - 未获取到行情数据
+2026-03-12 10:20:23 [INFO] stock_system - 📡 检查自选股 4 只...
+2026-03-12 10:20:28 [WARNING] stock_system - AKShare实时行情失败: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without
+2026-03-12 10:20:28 [ERROR] stock_system - 行情接口失败
+2026-03-12 10:20:28 [WARNING] stock_system - 未获取到行情数据
+2026-03-12 10:21:28 [INFO] stock_system - 📡 检查自选股 4 只...
+2026-03-12 10:21:33 [WARNING] stock_system - AKShare实时行情失败: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without
+2026-03-12 10:21:33 [ERROR] stock_system - 行情接口失败
+2026-03-12 10:21:33 [WARNING] stock_system - 未获取到行情数据
+2026-03-12 10:22:33 [INFO] stock_system - 📡 检查自选股 4 只...
+2026-03-12 10:22:38 [WARNING] stock_system - AKShare实时行情失败: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without
+2026-03-12 10:22:38 [ERROR] stock_system - 行情接口失败
+2026-03-12 10:22:38 [WARNING] stock_system - 未获取到行情数据
+2026-03-12 10:23:38 [INFO] stock_system - 📡 检查自选股 4 只...
+2026-03-12 10:23:44 [WARNING] stock_system - AKShare实时行情失败: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without
+2026-03-12 10:23:44 [ERROR] stock_system - 行情接口失败
+2026-03-12 10:23:44 [WARNING] stock_system - 未获取到行情数据
+2026-03-12 10:24:44 [INFO] stock_system - 📡 检查自选股 4 只...
+2026-03-12 10:24:50 [WARNING] stock_system - AKShare实时行情失败: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without
+2026-03-12 10:24:50 [ERROR] stock_system - 行情接口失败
+2026-03-12 10:24:50 [WARNING] stock_system - 未获取到行情数据
+2026-03-12 10:25:50 [INFO] stock_system - 📡 检查自选股 4 只...
+2026-03-12 10:25:55 [WARNING] stock_system - AKShare实时行情失败: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without
+2026-03-12 10:25:55 [ERROR] stock_system - 行情接口失败
+2026-03-12 10:25:55 [WARNING] stock_system - 未获取到行情数据
+2026-03-12 10:26:55 [INFO] stock_system - 📡 检查自选股 4 只...
+2026-03-12 10:27:00 [WARNING] stock_system - AKShare实时行情失败: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without
+2026-03-12 10:27:00 [ERROR] stock_system - 行情接口失败
+2026-03-12 10:27:00 [WARNING] stock_system - 未获取到行情数据
+2026-03-12 10:28:00 [INFO] stock_system - 📡 检查自选股 4 只...
+2026-03-12 10:28:05 [WARNING] stock_system - AKShare实时行情失败: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without
+2026-03-12 10:28:05 [ERROR] stock_system - 行情接口失败
+2026-03-12 10:28:05 [WARNING] stock_system - 未获取到行情数据
+2026-03-12 10:29:05 [INFO] stock_system - 📡 检查自选股 4 只...
+2026-03-12 10:29:11 [WARNING] stock_system - AKShare实时行情失败: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without
+2026-03-12 10:29:11 [ERROR] stock_system - 行情接口失败
+2026-03-12 10:29:11 [WARNING] stock_system - 未获取到行情数据
+2026-03-12 10:30:11 [INFO] stock_system - 📡 检查自选股 4 只...
+2026-03-12 10:30:16 [WARNING] stock_system - AKShare实时行情失败: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without
+2026-03-12 10:30:16 [ERROR] stock_system - 行情接口失败
+2026-03-12 10:30:16 [WARNING] stock_system - 未获取到行情数据
+2026-03-12 10:31:16 [INFO] stock_system - 📡 检查自选股 4 只...
+2026-03-12 10:31:22 [WARNING] stock_system - AKShare实时行情失败: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without
+2026-03-12 10:31:22 [ERROR] stock_system - 行情接口失败
+2026-03-12 10:31:22 [WARNING] stock_system - 未获取到行情数据
+2026-03-12 10:32:22 [INFO] stock_system - 📡 检查自选股 4 只...
+2026-03-12 10:32:27 [WARNING] stock_system - AKShare实时行情失败: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without
+2026-03-12 10:32:27 [ERROR] stock_system - 行情接口失败
+2026-03-12 10:32:27 [WARNING] stock_system - 未获取到行情数据
+2026-03-12 10:33:27 [INFO] stock_system - 📡 检查自选股 4 只...
+2026-03-12 10:33:32 [WARNING] stock_system - AKShare实时行情失败: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without
+2026-03-12 10:33:32 [ERROR] stock_system - 行情接口失败
+2026-03-12 10:33:32 [WARNING] stock_system - 未获取到行情数据
+2026-03-12 10:34:32 [INFO] stock_system - 📡 检查自选股 4 只...
+2026-03-12 10:34:38 [WARNING] stock_system - AKShare实时行情失败: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without
+2026-03-12 10:34:38 [ERROR] stock_system - 行情接口失败
+2026-03-12 10:34:38 [WARNING] stock_system - 未获取到行情数据
+2026-03-12 10:35:38 [INFO] stock_system - 📡 检查自选股 4 只...
+2026-03-12 10:35:44 [WARNING] stock_system - AKShare实时行情失败: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without
+2026-03-12 10:35:44 [ERROR] stock_system - 行情接口失败
+2026-03-12 10:35:44 [WARNING] stock_system - 未获取到行情数据
+2026-03-12 10:36:44 [INFO] stock_system - 📡 检查自选股 4 只...
+2026-03-12 10:36:50 [WARNING] stock_system - AKShare实时行情失败: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without
+2026-03-12 10:36:50 [ERROR] stock_system - 行情接口失败
+2026-03-12 10:36:50 [WARNING] stock_system - 未获取到行情数据
+2026-03-12 10:37:50 [INFO] stock_system - 📡 检查自选股 4 只...
+2026-03-12 10:37:56 [WARNING] stock_system - AKShare实时行情失败: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without
+2026-03-12 10:37:56 [ERROR] stock_system - 行情接口失败
+2026-03-12 10:37:56 [WARNING] stock_system - 未获取到行情数据
+2026-03-12 10:38:56 [INFO] stock_system - 📡 检查自选股 4 只...
+2026-03-12 10:39:01 [WARNING] stock_system - AKShare实时行情失败: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without
+2026-03-12 10:39:01 [ERROR] stock_system - 行情接口失败
+2026-03-12 10:39:01 [WARNING] stock_system - 未获取到行情数据
+2026-03-12 10:40:01 [INFO] stock_system - 📡 检查自选股 4 只...
+2026-03-12 10:40:07 [WARNING] stock_system - AKShare实时行情失败: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without
+2026-03-12 10:40:07 [ERROR] stock_system - 行情接口失败
+2026-03-12 10:40:07 [WARNING] stock_system - 未获取到行情数据
+2026-03-12 10:41:07 [INFO] stock_system - 📡 检查自选股 4 只...
+2026-03-12 10:41:12 [WARNING] stock_system - AKShare实时行情失败: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without
+2026-03-12 10:41:12 [ERROR] stock_system - 行情接口失败
+2026-03-12 10:41:12 [WARNING] stock_system - 未获取到行情数据
+2026-03-12 10:42:12 [INFO] stock_system - 📡 检查自选股 4 只...
+2026-03-12 10:42:17 [WARNING] stock_system - AKShare实时行情失败: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without
+2026-03-12 10:42:17 [ERROR] stock_system - 行情接口失败
+2026-03-12 10:42:17 [WARNING] stock_system - 未获取到行情数据
+2026-03-12 10:43:17 [INFO] stock_system - 📡 检查自选股 4 只...
+2026-03-12 10:43:23 [WARNING] stock_system - AKShare实时行情失败: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without
+2026-03-12 10:43:23 [ERROR] stock_system - 行情接口失败
+2026-03-12 10:43:23 [WARNING] stock_system - 未获取到行情数据
+2026-03-12 10:44:23 [INFO] stock_system - 📡 检查自选股 4 只...
+2026-03-12 10:44:29 [WARNING] stock_system - AKShare实时行情失败: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without
+2026-03-12 10:44:29 [ERROR] stock_system - 行情接口失败
+2026-03-12 10:44:29 [WARNING] stock_system - 未获取到行情数据
+2026-03-12 10:45:29 [INFO] stock_system - 📡 检查自选股 4 只...
+2026-03-12 10:45:34 [WARNING] stock_system - AKShare实时行情失败: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without
+2026-03-12 10:45:34 [ERROR] stock_system - 行情接口失败
+2026-03-12 10:45:34 [WARNING] stock_system - 未获取到行情数据
+2026-03-12 10:46:34 [INFO] stock_system - 📡 检查自选股 4 只...
+2026-03-12 10:46:40 [WARNING] stock_system - AKShare实时行情失败: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without
+2026-03-12 10:46:40 [ERROR] stock_system - 行情接口失败
+2026-03-12 10:46:40 [WARNING] stock_system - 未获取到行情数据
+2026-03-12 10:47:40 [INFO] stock_system - 📡 检查自选股 4 只...
+2026-03-12 10:47:46 [WARNING] stock_system - AKShare实时行情失败: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without
+2026-03-12 10:47:46 [ERROR] stock_system - 行情接口失败
+2026-03-12 10:47:46 [WARNING] stock_system - 未获取到行情数据
+2026-03-12 10:48:46 [INFO] stock_system - 📡 检查自选股 4 只...
+2026-03-12 10:48:51 [WARNING] stock_system - AKShare实时行情失败: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without
+2026-03-12 10:48:51 [ERROR] stock_system - 行情接口失败
+2026-03-12 10:48:51 [WARNING] stock_system - 未获取到行情数据
+2026-03-12 10:49:51 [INFO] stock_system - 📡 检查自选股 4 只...
+2026-03-12 10:49:56 [WARNING] stock_system - AKShare实时行情失败: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without
+2026-03-12 10:49:56 [ERROR] stock_system - 行情接口失败
+2026-03-12 10:49:56 [WARNING] stock_system - 未获取到行情数据
+2026-03-12 10:50:56 [INFO] stock_system - 📡 检查自选股 4 只...
+2026-03-12 10:51:02 [WARNING] stock_system - AKShare实时行情失败: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without
+2026-03-12 10:51:02 [ERROR] stock_system - 行情接口失败
+2026-03-12 10:51:02 [WARNING] stock_system - 未获取到行情数据
+2026-03-12 10:52:02 [INFO] stock_system - 📡 检查自选股 4 只...
+2026-03-12 10:52:07 [WARNING] stock_system - AKShare实时行情失败: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without
+2026-03-12 10:52:07 [ERROR] stock_system - 行情接口失败
+2026-03-12 10:52:07 [WARNING] stock_system - 未获取到行情数据
+2026-03-12 10:53:07 [INFO] stock_system - 📡 检查自选股 4 只...
+2026-03-12 10:53:13 [WARNING] stock_system - AKShare实时行情失败: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without
+2026-03-12 10:53:13 [ERROR] stock_system - 行情接口失败
+2026-03-12 10:53:13 [WARNING] stock_system - 未获取到行情数据
+2026-03-12 10:54:13 [INFO] stock_system - 📡 检查自选股 4 只...
+2026-03-12 10:54:18 [WARNING] stock_system - AKShare实时行情失败: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without
+2026-03-12 10:54:18 [ERROR] stock_system - 行情接口失败
+2026-03-12 10:54:18 [WARNING] stock_system - 未获取到行情数据
+2026-03-12 10:55:18 [INFO] stock_system - 📡 检查自选股 4 只...
+2026-03-12 10:55:24 [WARNING] stock_system - AKShare实时行情失败: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without
+2026-03-12 10:55:24 [ERROR] stock_system - 行情接口失败
+2026-03-12 10:55:24 [WARNING] stock_system - 未获取到行情数据
+2026-03-12 10:56:24 [INFO] stock_system - 📡 检查自选股 4 只...
+2026-03-12 10:56:30 [WARNING] stock_system - AKShare实时行情失败: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without
+2026-03-12 10:56:30 [ERROR] stock_system - 行情接口失败
+2026-03-12 10:56:30 [WARNING] stock_system - 未获取到行情数据
+2026-03-12 10:57:30 [INFO] stock_system - 📡 检查自选股 4 只...
+2026-03-12 10:57:35 [WARNING] stock_system - AKShare实时行情失败: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without
+2026-03-12 10:57:35 [ERROR] stock_system - 行情接口失败
+2026-03-12 10:57:35 [WARNING] stock_system - 未获取到行情数据
+2026-03-12 10:58:35 [INFO] stock_system - 📡 检查自选股 4 只...
+2026-03-12 10:58:40 [WARNING] stock_system - AKShare实时行情失败: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without
+2026-03-12 10:58:40 [ERROR] stock_system - 行情接口失败
+2026-03-12 10:58:40 [WARNING] stock_system - 未获取到行情数据
+2026-03-12 10:59:40 [INFO] stock_system - 📡 检查自选股 4 只...
+2026-03-12 10:59:45 [WARNING] stock_system - AKShare实时行情失败: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without
+2026-03-12 10:59:45 [ERROR] stock_system - 行情接口失败
+2026-03-12 10:59:45 [WARNING] stock_system - 未获取到行情数据
+2026-03-12 11:00:45 [INFO] stock_system - 📡 检查自选股 4 只...
+2026-03-12 11:00:51 [WARNING] stock_system - AKShare实时行情失败: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without
+2026-03-12 11:00:51 [ERROR] stock_system - 行情接口失败
+2026-03-12 11:00:51 [WARNING] stock_system - 未获取到行情数据
+2026-03-12 11:01:51 [INFO] stock_system - 📡 检查自选股 4 只...
+2026-03-12 11:01:56 [WARNING] stock_system - AKShare实时行情失败: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without
+2026-03-12 11:01:56 [ERROR] stock_system - 行情接口失败
+2026-03-12 11:01:56 [WARNING] stock_system - 未获取到行情数据
+2026-03-12 11:02:56 [INFO] stock_system - 📡 检查自选股 4 只...
+2026-03-12 11:03:01 [WARNING] stock_system - AKShare实时行情失败: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without
+2026-03-12 11:03:01 [ERROR] stock_system - 行情接口失败
+2026-03-12 11:03:01 [WARNING] stock_system - 未获取到行情数据
+2026-03-12 11:04:01 [INFO] stock_system - 📡 检查自选股 4 只...
+2026-03-12 11:04:07 [WARNING] stock_system - AKShare实时行情失败: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without
+2026-03-12 11:04:07 [ERROR] stock_system - 行情接口失败
+2026-03-12 11:04:07 [WARNING] stock_system - 未获取到行情数据
+2026-03-12 11:05:07 [INFO] stock_system - 📡 检查自选股 4 只...
+2026-03-12 11:05:12 [WARNING] stock_system - AKShare实时行情失败: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without
+2026-03-12 11:05:12 [ERROR] stock_system - 行情接口失败
+2026-03-12 11:05:12 [WARNING] stock_system - 未获取到行情数据
+2026-03-12 11:06:12 [INFO] stock_system - 📡 检查自选股 4 只...
+2026-03-12 11:06:18 [WARNING] stock_system - AKShare实时行情失败: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without
+2026-03-12 11:06:18 [ERROR] stock_system - 行情接口失败
+2026-03-12 11:06:18 [WARNING] stock_system - 未获取到行情数据
+2026-03-12 11:07:18 [INFO] stock_system - 📡 检查自选股 4 只...
+2026-03-12 11:07:23 [WARNING] stock_system - AKShare实时行情失败: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without
+2026-03-12 11:07:23 [ERROR] stock_system - 行情接口失败
+2026-03-12 11:07:23 [WARNING] stock_system - 未获取到行情数据
+2026-03-12 11:08:23 [INFO] stock_system - 📡 检查自选股 4 只...
+2026-03-12 11:08:28 [WARNING] stock_system - AKShare实时行情失败: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without
+2026-03-12 11:08:28 [ERROR] stock_system - 行情接口失败
+2026-03-12 11:08:28 [WARNING] stock_system - 未获取到行情数据
+2026-03-12 11:09:28 [INFO] stock_system - 📡 检查自选股 4 只...
+2026-03-12 11:09:33 [WARNING] stock_system - AKShare实时行情失败: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without
+2026-03-12 11:09:33 [ERROR] stock_system - 行情接口失败
+2026-03-12 11:09:33 [WARNING] stock_system - 未获取到行情数据
+2026-03-12 11:10:33 [INFO] stock_system - 📡 检查自选股 4 只...
+2026-03-12 11:10:38 [WARNING] stock_system - AKShare实时行情失败: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without
+2026-03-12 11:10:38 [ERROR] stock_system - 行情接口失败
+2026-03-12 11:10:38 [WARNING] stock_system - 未获取到行情数据
+2026-03-12 11:11:38 [INFO] stock_system - 📡 检查自选股 4 只...
+2026-03-12 11:11:43 [WARNING] stock_system - AKShare实时行情失败: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without
+2026-03-12 11:11:43 [ERROR] stock_system - 行情接口失败
+2026-03-12 11:11:43 [WARNING] stock_system - 未获取到行情数据
+2026-03-12 11:12:43 [INFO] stock_system - 📡 检查自选股 4 只...
+2026-03-12 11:12:49 [WARNING] stock_system - AKShare实时行情失败: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without
+2026-03-12 11:12:49 [ERROR] stock_system - 行情接口失败
+2026-03-12 11:12:49 [WARNING] stock_system - 未获取到行情数据
+2026-03-12 11:13:49 [INFO] stock_system - 📡 检查自选股 4 只...
+2026-03-12 11:13:55 [WARNING] stock_system - AKShare实时行情失败: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without
+2026-03-12 11:13:55 [ERROR] stock_system - 行情接口失败
+2026-03-12 11:13:55 [WARNING] stock_system - 未获取到行情数据
+2026-03-12 11:14:55 [INFO] stock_system - 📡 检查自选股 4 只...
+2026-03-12 11:15:00 [WARNING] stock_system - AKShare实时行情失败: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without
+2026-03-12 11:15:00 [ERROR] stock_system - 行情接口失败
+2026-03-12 11:15:00 [WARNING] stock_system - 未获取到行情数据
+2026-03-12 11:16:00 [INFO] stock_system - 📡 检查自选股 4 只...
+2026-03-12 11:16:06 [WARNING] stock_system - AKShare实时行情失败: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without
+2026-03-12 11:16:06 [ERROR] stock_system - 行情接口失败
+2026-03-12 11:16:06 [WARNING] stock_system - 未获取到行情数据
+2026-03-12 11:17:06 [INFO] stock_system - 📡 检查自选股 4 只...
+2026-03-12 11:17:12 [WARNING] stock_system - AKShare实时行情失败: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without
+2026-03-12 11:17:12 [ERROR] stock_system - 行情接口失败
+2026-03-12 11:17:12 [WARNING] stock_system - 未获取到行情数据
+2026-03-12 11:18:12 [INFO] stock_system - 📡 检查自选股 4 只...
+2026-03-12 11:18:18 [WARNING] stock_system - AKShare实时行情失败: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without
+2026-03-12 11:18:18 [ERROR] stock_system - 行情接口失败
+2026-03-12 11:18:18 [WARNING] stock_system - 未获取到行情数据
+2026-03-12 11:19:18 [INFO] stock_system - 📡 检查自选股 4 只...
+2026-03-12 11:19:23 [WARNING] stock_system - AKShare实时行情失败: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without
+2026-03-12 11:19:23 [ERROR] stock_system - 行情接口失败
+2026-03-12 11:19:23 [WARNING] stock_system - 未获取到行情数据
+2026-03-12 11:20:23 [INFO] stock_system - 📡 检查自选股 4 只...
+2026-03-12 11:20:29 [WARNING] stock_system - AKShare实时行情失败: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without
+2026-03-12 11:20:29 [ERROR] stock_system - 行情接口失败
+2026-03-12 11:20:29 [WARNING] stock_system - 未获取到行情数据
+2026-03-12 11:21:29 [INFO] stock_system - 📡 检查自选股 4 只...
+2026-03-12 11:21:34 [WARNING] stock_system - AKShare实时行情失败: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without
+2026-03-12 11:21:34 [ERROR] stock_system - 行情接口失败
+2026-03-12 11:21:34 [WARNING] stock_system - 未获取到行情数据
+2026-03-12 11:22:34 [INFO] stock_system - 📡 检查自选股 4 只...
+2026-03-12 11:22:40 [WARNING] stock_system - AKShare实时行情失败: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without
+2026-03-12 11:22:40 [ERROR] stock_system - 行情接口失败
+2026-03-12 11:22:40 [WARNING] stock_system - 未获取到行情数据
+2026-03-12 11:23:40 [INFO] stock_system - 📡 检查自选股 4 只...
+2026-03-12 11:23:45 [WARNING] stock_system - AKShare实时行情失败: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without
+2026-03-12 11:23:45 [ERROR] stock_system - 行情接口失败
+2026-03-12 11:23:45 [WARNING] stock_system - 未获取到行情数据
+2026-03-12 11:24:45 [INFO] stock_system - 📡 检查自选股 4 只...
+2026-03-12 11:24:51 [WARNING] stock_system - AKShare实时行情失败: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without
+2026-03-12 11:24:51 [ERROR] stock_system - 行情接口失败
+2026-03-12 11:24:51 [WARNING] stock_system - 未获取到行情数据
+2026-03-12 11:25:51 [INFO] stock_system - 📡 检查自选股 4 只...
+2026-03-12 11:25:56 [WARNING] stock_system - AKShare实时行情失败: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without
+2026-03-12 11:25:56 [ERROR] stock_system - 行情接口失败
+2026-03-12 11:25:56 [WARNING] stock_system - 未获取到行情数据
+2026-03-12 11:26:56 [INFO] stock_system - 📡 检查自选股 4 只...
+2026-03-12 11:27:02 [WARNING] stock_system - AKShare实时行情失败: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without
+2026-03-12 11:27:02 [ERROR] stock_system - 行情接口失败
+2026-03-12 11:27:02 [WARNING] stock_system - 未获取到行情数据
+2026-03-12 11:28:02 [INFO] stock_system - 📡 检查自选股 4 只...
+2026-03-12 11:28:08 [WARNING] stock_system - AKShare实时行情失败: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without
+2026-03-12 11:28:08 [ERROR] stock_system - 行情接口失败
+2026-03-12 11:28:08 [WARNING] stock_system - 未获取到行情数据
+2026-03-12 11:29:08 [INFO] stock_system - 📡 检查自选股 4 只...
+2026-03-12 11:29:14 [WARNING] stock_system - AKShare实时行情失败: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without
+2026-03-12 11:29:14 [ERROR] stock_system - 行情接口失败
+2026-03-12 11:29:14 [WARNING] stock_system - 未获取到行情数据
+2026-03-12 11:30:14 [INFO] stock_system - 📡 检查自选股 4 只...
+2026-03-12 11:30:19 [WARNING] stock_system - AKShare实时行情失败: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without
+2026-03-12 11:30:19 [ERROR] stock_system - 行情接口失败
+2026-03-12 11:30:19 [WARNING] stock_system - 未获取到行情数据
+2026-03-12 11:31:19 [INFO] stock_system - 📡 检查自选股 4 只...
+2026-03-12 11:31:25 [WARNING] stock_system - AKShare实时行情失败: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without
+2026-03-12 11:31:25 [ERROR] stock_system - 行情接口失败
+2026-03-12 11:31:25 [WARNING] stock_system - 未获取到行情数据
+2026-03-12 11:32:25 [INFO] stock_system - 📡 检查自选股 4 只...
+2026-03-12 11:32:31 [WARNING] stock_system - AKShare实时行情失败: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without
+2026-03-12 11:32:31 [ERROR] stock_system - 行情接口失败
+2026-03-12 11:32:31 [WARNING] stock_system - 未获取到行情数据
+2026-03-12 11:33:31 [INFO] stock_system - 📡 检查自选股 4 只...
+2026-03-12 11:33:36 [WARNING] stock_system - AKShare实时行情失败: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without
+2026-03-12 11:33:36 [ERROR] stock_system - 行情接口失败
+2026-03-12 11:33:36 [WARNING] stock_system - 未获取到行情数据
+2026-03-12 11:34:36 [INFO] stock_system - 📡 检查自选股 4 只...
+2026-03-12 11:34:42 [WARNING] stock_system - AKShare实时行情失败: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without
+2026-03-12 11:34:42 [ERROR] stock_system - 行情接口失败
+2026-03-12 11:34:42 [WARNING] stock_system - 未获取到行情数据
+2026-03-12 11:35:42 [INFO] stock_system - 📡 检查自选股 4 只...
+2026-03-12 11:35:48 [WARNING] stock_system - AKShare实时行情失败: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without
+2026-03-12 11:35:48 [ERROR] stock_system - 行情接口失败
+2026-03-12 11:35:48 [WARNING] stock_system - 未获取到行情数据
+2026-03-12 12:55:49 [INFO] stock_system - 📡 检查自选股 4 只...
+2026-03-12 12:55:54 [WARNING] stock_system - AKShare实时行情失败: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without
+2026-03-12 12:55:54 [ERROR] stock_system - 行情接口失败
+2026-03-12 12:55:54 [WARNING] stock_system - 未获取到行情数据
+2026-03-12 12:56:54 [INFO] stock_system - 📡 检查自选股 4 只...
+2026-03-12 12:56:59 [WARNING] stock_system - AKShare实时行情失败: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without
+2026-03-12 12:56:59 [ERROR] stock_system - 行情接口失败
+2026-03-12 12:56:59 [WARNING] stock_system - 未获取到行情数据
+2026-03-12 12:57:59 [INFO] stock_system - 📡 检查自选股 4 只...
+2026-03-12 12:58:04 [WARNING] stock_system - AKShare实时行情失败: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without
+2026-03-12 12:58:05 [ERROR] stock_system - 行情接口失败
+2026-03-12 12:58:05 [WARNING] stock_system - 未获取到行情数据
+2026-03-12 12:59:05 [INFO] stock_system - 📡 检查自选股 4 只...
+2026-03-12 12:59:10 [WARNING] stock_system - AKShare实时行情失败: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without
+2026-03-12 12:59:10 [ERROR] stock_system - 行情接口失败
+2026-03-12 12:59:10 [WARNING] stock_system - 未获取到行情数据
+2026-03-12 13:00:10 [INFO] stock_system - 📡 检查自选股 4 只...
+2026-03-12 13:00:16 [WARNING] stock_system - AKShare实时行情失败: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without
+2026-03-12 13:00:16 [ERROR] stock_system - 行情接口失败
+2026-03-12 13:00:16 [WARNING] stock_system - 未获取到行情数据
+2026-03-12 13:01:16 [INFO] stock_system - 📡 检查自选股 4 只...
+2026-03-12 13:01:22 [WARNING] stock_system - AKShare实时行情失败: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without
+2026-03-12 13:01:22 [ERROR] stock_system - 行情接口失败
+2026-03-12 13:01:22 [WARNING] stock_system - 未获取到行情数据
+2026-03-12 13:02:22 [INFO] stock_system - 📡 检查自选股 4 只...
+2026-03-12 13:02:27 [WARNING] stock_system - AKShare实时行情失败: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without
+2026-03-12 13:02:27 [ERROR] stock_system - 行情接口失败
+2026-03-12 13:02:27 [WARNING] stock_system - 未获取到行情数据
+2026-03-12 13:03:27 [INFO] stock_system - 📡 检查自选股 4 只...
+2026-03-12 13:03:32 [WARNING] stock_system - AKShare实时行情失败: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without
+2026-03-12 13:03:32 [ERROR] stock_system - 行情接口失败
+2026-03-12 13:03:32 [WARNING] stock_system - 未获取到行情数据
+2026-03-12 13:04:32 [INFO] stock_system - 📡 检查自选股 4 只...
+2026-03-12 13:04:37 [WARNING] stock_system - AKShare实时行情失败: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without
+2026-03-12 13:04:37 [ERROR] stock_system - 行情接口失败
+2026-03-12 13:04:37 [WARNING] stock_system - 未获取到行情数据
+2026-03-12 13:05:37 [INFO] stock_system - 📡 检查自选股 4 只...
+2026-03-12 13:05:42 [WARNING] stock_system - AKShare实时行情失败: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without
+2026-03-12 13:05:42 [ERROR] stock_system - 行情接口失败
+2026-03-12 13:05:42 [WARNING] stock_system - 未获取到行情数据
+2026-03-12 13:06:43 [INFO] stock_system - 📡 检查自选股 4 只...
+2026-03-12 13:06:48 [WARNING] stock_system - AKShare实时行情失败: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without
+2026-03-12 13:06:48 [ERROR] stock_system - 行情接口失败
+2026-03-12 13:06:48 [WARNING] stock_system - 未获取到行情数据
+2026-03-12 13:07:48 [INFO] stock_system - 📡 检查自选股 4 只...
+2026-03-12 13:07:53 [WARNING] stock_system - AKShare实时行情失败: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without
+2026-03-12 13:07:53 [ERROR] stock_system - 行情接口失败
+2026-03-12 13:07:53 [WARNING] stock_system - 未获取到行情数据
+2026-03-12 13:08:53 [INFO] stock_system - 📡 检查自选股 4 只...
+2026-03-12 13:08:59 [WARNING] stock_system - AKShare实时行情失败: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without
+2026-03-12 13:08:59 [ERROR] stock_system - 行情接口失败
+2026-03-12 13:08:59 [WARNING] stock_system - 未获取到行情数据
+2026-03-12 13:09:59 [INFO] stock_system - 📡 检查自选股 4 只...
+2026-03-12 13:10:04 [WARNING] stock_system - AKShare实时行情失败: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without
+2026-03-12 13:10:04 [ERROR] stock_system - 行情接口失败
+2026-03-12 13:10:04 [WARNING] stock_system - 未获取到行情数据
+2026-03-12 13:11:04 [INFO] stock_system - 📡 检查自选股 4 只...
+2026-03-12 13:11:10 [WARNING] stock_system - AKShare实时行情失败: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without
+2026-03-12 13:11:10 [ERROR] stock_system - 行情接口失败
+2026-03-12 13:11:10 [WARNING] stock_system - 未获取到行情数据
+2026-03-12 13:12:10 [INFO] stock_system - 📡 检查自选股 4 只...
+2026-03-12 13:12:15 [WARNING] stock_system - AKShare实时行情失败: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without
+2026-03-12 13:12:15 [ERROR] stock_system - 行情接口失败
+2026-03-12 13:12:15 [WARNING] stock_system - 未获取到行情数据
+2026-03-12 13:13:15 [INFO] stock_system - 📡 检查自选股 4 只...
+2026-03-12 13:13:21 [WARNING] stock_system - AKShare实时行情失败: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without
+2026-03-12 13:13:21 [ERROR] stock_system - 行情接口失败
+2026-03-12 13:13:21 [WARNING] stock_system - 未获取到行情数据
+2026-03-12 13:14:21 [INFO] stock_system - 📡 检查自选股 4 只...
+2026-03-12 13:14:27 [WARNING] stock_system - AKShare实时行情失败: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without
+2026-03-12 13:14:27 [ERROR] stock_system - 行情接口失败
+2026-03-12 13:14:27 [WARNING] stock_system - 未获取到行情数据
+2026-03-12 13:15:27 [INFO] stock_system - 📡 检查自选股 4 只...
+2026-03-12 13:15:33 [WARNING] stock_system - AKShare实时行情失败: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without
+2026-03-12 13:15:33 [ERROR] stock_system - 行情接口失败
+2026-03-12 13:15:33 [WARNING] stock_system - 未获取到行情数据
+2026-03-12 13:16:33 [INFO] stock_system - 📡 检查自选股 4 只...
+2026-03-12 13:16:38 [WARNING] stock_system - AKShare实时行情失败: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without
+2026-03-12 13:16:38 [ERROR] stock_system - 行情接口失败
+2026-03-12 13:16:38 [WARNING] stock_system - 未获取到行情数据
+2026-03-12 13:17:38 [INFO] stock_system - 📡 检查自选股 4 只...
+2026-03-12 13:17:43 [WARNING] stock_system - AKShare实时行情失败: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without
+2026-03-12 13:17:43 [ERROR] stock_system - 行情接口失败
+2026-03-12 13:17:43 [WARNING] stock_system - 未获取到行情数据
+2026-03-12 13:18:43 [INFO] stock_system - 📡 检查自选股 4 只...
+2026-03-12 13:18:49 [WARNING] stock_system - AKShare实时行情失败: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without
+2026-03-12 13:18:49 [ERROR] stock_system - 行情接口失败
+2026-03-12 13:18:49 [WARNING] stock_system - 未获取到行情数据
+2026-03-12 13:19:49 [INFO] stock_system - 📡 检查自选股 4 只...
+2026-03-12 13:19:54 [WARNING] stock_system - AKShare实时行情失败: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without
+2026-03-12 13:19:54 [ERROR] stock_system - 行情接口失败
+2026-03-12 13:19:54 [WARNING] stock_system - 未获取到行情数据
+2026-03-12 13:20:54 [INFO] stock_system - 📡 检查自选股 4 只...
+2026-03-12 13:21:00 [WARNING] stock_system - AKShare实时行情失败: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without
+2026-03-12 13:21:00 [ERROR] stock_system - 行情接口失败
+2026-03-12 13:21:00 [WARNING] stock_system - 未获取到行情数据
+2026-03-12 13:22:00 [INFO] stock_system - 📡 检查自选股 4 只...
+2026-03-12 13:22:06 [WARNING] stock_system - AKShare实时行情失败: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without
+2026-03-12 13:22:06 [ERROR] stock_system - 行情接口失败
+2026-03-12 13:22:06 [WARNING] stock_system - 未获取到行情数据
+2026-03-12 13:23:06 [INFO] stock_system - 📡 检查自选股 4 只...
+2026-03-12 13:23:11 [WARNING] stock_system - AKShare实时行情失败: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without
+2026-03-12 13:23:11 [ERROR] stock_system - 行情接口失败
+2026-03-12 13:23:11 [WARNING] stock_system - 未获取到行情数据
+2026-03-12 13:24:11 [INFO] stock_system - 📡 检查自选股 4 只...
+2026-03-12 13:24:17 [WARNING] stock_system - AKShare实时行情失败: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without
+2026-03-12 13:24:17 [ERROR] stock_system - 行情接口失败
+2026-03-12 13:24:17 [WARNING] stock_system - 未获取到行情数据
+2026-03-12 13:25:17 [INFO] stock_system - 📡 检查自选股 4 只...
+2026-03-12 13:25:22 [WARNING] stock_system - AKShare实时行情失败: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without
+2026-03-12 13:25:22 [ERROR] stock_system - 行情接口失败
+2026-03-12 13:25:22 [WARNING] stock_system - 未获取到行情数据
+2026-03-12 13:26:22 [INFO] stock_system - 📡 检查自选股 4 只...
+2026-03-12 13:26:28 [WARNING] stock_system - AKShare实时行情失败: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without
+2026-03-12 13:26:28 [ERROR] stock_system - 行情接口失败
+2026-03-12 13:26:28 [WARNING] stock_system - 未获取到行情数据
+2026-03-12 13:27:28 [INFO] stock_system - 📡 检查自选股 4 只...
+2026-03-12 13:27:33 [WARNING] stock_system - AKShare实时行情失败: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without
+2026-03-12 13:27:33 [ERROR] stock_system - 行情接口失败
+2026-03-12 13:27:33 [WARNING] stock_system - 未获取到行情数据
+2026-03-12 13:28:33 [INFO] stock_system - 📡 检查自选股 4 只...
+2026-03-12 13:28:39 [WARNING] stock_system - AKShare实时行情失败: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without
+2026-03-12 13:28:39 [ERROR] stock_system - 行情接口失败
+2026-03-12 13:28:39 [WARNING] stock_system - 未获取到行情数据
+2026-03-12 13:29:39 [INFO] stock_system - 📡 检查自选股 4 只...
+2026-03-12 13:29:45 [WARNING] stock_system - AKShare实时行情失败: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without
+2026-03-12 13:29:45 [ERROR] stock_system - 行情接口失败
+2026-03-12 13:29:45 [WARNING] stock_system - 未获取到行情数据
+2026-03-12 13:30:45 [INFO] stock_system - 📡 检查自选股 4 只...
+2026-03-12 13:30:50 [WARNING] stock_system - AKShare实时行情失败: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without
+2026-03-12 13:30:50 [ERROR] stock_system - 行情接口失败
+2026-03-12 13:30:50 [WARNING] stock_system - 未获取到行情数据
+2026-03-12 13:31:50 [INFO] stock_system - 📡 检查自选股 4 只...
+2026-03-12 13:31:55 [WARNING] stock_system - AKShare实时行情失败: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without
+2026-03-12 13:31:55 [ERROR] stock_system - 行情接口失败
+2026-03-12 13:31:55 [WARNING] stock_system - 未获取到行情数据
+2026-03-12 13:32:55 [INFO] stock_system - 📡 检查自选股 4 只...
+2026-03-12 13:33:00 [WARNING] stock_system - AKShare实时行情失败: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without
+2026-03-12 13:33:00 [ERROR] stock_system - 行情接口失败
+2026-03-12 13:33:00 [WARNING] stock_system - 未获取到行情数据
+2026-03-12 13:34:00 [INFO] stock_system - 📡 检查自选股 4 只...
+2026-03-12 13:34:06 [WARNING] stock_system - AKShare实时行情失败: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without
+2026-03-12 13:34:06 [ERROR] stock_system - 行情接口失败
+2026-03-12 13:34:06 [WARNING] stock_system - 未获取到行情数据
+2026-03-12 13:35:06 [INFO] stock_system - 📡 检查自选股 4 只...
+2026-03-12 13:35:11 [WARNING] stock_system - AKShare实时行情失败: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without
+2026-03-12 13:35:11 [ERROR] stock_system - 行情接口失败
+2026-03-12 13:35:11 [WARNING] stock_system - 未获取到行情数据
+2026-03-12 13:36:11 [INFO] stock_system - 📡 检查自选股 4 只...
+2026-03-12 13:36:16 [WARNING] stock_system - AKShare实时行情失败: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without
+2026-03-12 13:36:16 [ERROR] stock_system - 行情接口失败
+2026-03-12 13:36:16 [WARNING] stock_system - 未获取到行情数据
+2026-03-12 13:37:16 [INFO] stock_system - 📡 检查自选股 4 只...
+2026-03-12 13:37:22 [WARNING] stock_system - AKShare实时行情失败: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without
+2026-03-12 13:37:22 [ERROR] stock_system - 行情接口失败
+2026-03-12 13:37:22 [WARNING] stock_system - 未获取到行情数据
+2026-03-12 13:38:22 [INFO] stock_system - 📡 检查自选股 4 只...
+2026-03-12 13:38:27 [WARNING] stock_system - AKShare实时行情失败: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without
+2026-03-12 13:38:27 [ERROR] stock_system - 行情接口失败
+2026-03-12 13:38:27 [WARNING] stock_system - 未获取到行情数据
+2026-03-12 13:39:27 [INFO] stock_system - 📡 检查自选股 4 只...
+2026-03-12 13:39:33 [WARNING] stock_system - AKShare实时行情失败: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without
+2026-03-12 13:39:33 [ERROR] stock_system - 行情接口失败
+2026-03-12 13:39:33 [WARNING] stock_system - 未获取到行情数据
+2026-03-12 13:40:33 [INFO] stock_system - 📡 检查自选股 4 只...
+2026-03-12 13:40:38 [WARNING] stock_system - AKShare实时行情失败: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without
+2026-03-12 13:40:38 [ERROR] stock_system - 行情接口失败
+2026-03-12 13:40:38 [WARNING] stock_system - 未获取到行情数据
+2026-03-12 13:41:38 [INFO] stock_system - 📡 检查自选股 4 只...
+2026-03-12 13:41:44 [WARNING] stock_system - AKShare实时行情失败: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without
+2026-03-12 13:41:44 [ERROR] stock_system - 行情接口失败
+2026-03-12 13:41:44 [WARNING] stock_system - 未获取到行情数据
+2026-03-12 13:42:44 [INFO] stock_system - 📡 检查自选股 4 只...
+2026-03-12 13:42:49 [WARNING] stock_system - AKShare实时行情失败: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without
+2026-03-12 13:42:49 [ERROR] stock_system - 行情接口失败
+2026-03-12 13:42:49 [WARNING] stock_system - 未获取到行情数据
+2026-03-12 13:43:49 [INFO] stock_system - 📡 检查自选股 4 只...
+2026-03-12 13:43:55 [WARNING] stock_system - AKShare实时行情失败: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without
+2026-03-12 13:43:55 [ERROR] stock_system - 行情接口失败
+2026-03-12 13:43:55 [WARNING] stock_system - 未获取到行情数据
+2026-03-12 13:44:55 [INFO] stock_system - 📡 检查自选股 4 只...
+2026-03-12 13:45:00 [WARNING] stock_system - AKShare实时行情失败: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without
+2026-03-12 13:45:00 [ERROR] stock_system - 行情接口失败
+2026-03-12 13:45:00 [WARNING] stock_system - 未获取到行情数据
+2026-03-12 13:46:00 [INFO] stock_system - 📡 检查自选股 4 只...
+2026-03-12 13:46:06 [WARNING] stock_system - AKShare实时行情失败: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without
+2026-03-12 13:46:06 [ERROR] stock_system - 行情接口失败
+2026-03-12 13:46:06 [WARNING] stock_system - 未获取到行情数据
+2026-03-12 13:47:06 [INFO] stock_system - 📡 检查自选股 4 只...
+2026-03-12 13:47:12 [WARNING] stock_system - AKShare实时行情失败: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without
+2026-03-12 13:47:12 [ERROR] stock_system - 行情接口失败
+2026-03-12 13:47:12 [WARNING] stock_system - 未获取到行情数据
+2026-03-12 13:48:12 [INFO] stock_system - 📡 检查自选股 4 只...
+2026-03-12 13:48:17 [WARNING] stock_system - AKShare实时行情失败: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without
+2026-03-12 13:48:17 [ERROR] stock_system - 行情接口失败
+2026-03-12 13:48:17 [WARNING] stock_system - 未获取到行情数据
+2026-03-12 13:49:17 [INFO] stock_system - 📡 检查自选股 4 只...
+2026-03-12 13:49:23 [WARNING] stock_system - AKShare实时行情失败: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without
+2026-03-12 13:49:23 [ERROR] stock_system - 行情接口失败
+2026-03-12 13:49:23 [WARNING] stock_system - 未获取到行情数据
+2026-03-12 13:50:23 [INFO] stock_system - 📡 检查自选股 4 只...
+2026-03-12 13:50:29 [WARNING] stock_system - AKShare实时行情失败: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without
+2026-03-12 13:50:29 [ERROR] stock_system - 行情接口失败
+2026-03-12 13:50:29 [WARNING] stock_system - 未获取到行情数据
+2026-03-12 13:51:29 [INFO] stock_system - 📡 检查自选股 4 只...
+2026-03-12 13:51:34 [WARNING] stock_system - AKShare实时行情失败: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without
+2026-03-12 13:51:34 [ERROR] stock_system - 行情接口失败
+2026-03-12 13:51:34 [WARNING] stock_system - 未获取到行情数据
+2026-03-12 13:52:35 [INFO] stock_system - 📡 检查自选股 4 只...
+2026-03-12 13:52:40 [WARNING] stock_system - AKShare实时行情失败: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without
+2026-03-12 13:52:40 [ERROR] stock_system - 行情接口失败
+2026-03-12 13:52:40 [WARNING] stock_system - 未获取到行情数据
+2026-03-12 13:53:40 [INFO] stock_system - 📡 检查自选股 4 只...
+2026-03-12 13:53:45 [WARNING] stock_system - AKShare实时行情失败: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without
+2026-03-12 13:53:45 [ERROR] stock_system - 行情接口失败
+2026-03-12 13:53:45 [WARNING] stock_system - 未获取到行情数据
+2026-03-12 13:54:45 [INFO] stock_system - 📡 检查自选股 4 只...
+2026-03-12 13:54:50 [WARNING] stock_system - AKShare实时行情失败: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without
+2026-03-12 13:54:50 [ERROR] stock_system - 行情接口失败
+2026-03-12 13:54:50 [WARNING] stock_system - 未获取到行情数据
+2026-03-12 13:55:50 [INFO] stock_system - 📡 检查自选股 4 只...
+2026-03-12 13:55:56 [WARNING] stock_system - AKShare实时行情失败: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without
+2026-03-12 13:55:56 [ERROR] stock_system - 行情接口失败
+2026-03-12 13:55:56 [WARNING] stock_system - 未获取到行情数据
+2026-03-12 13:56:56 [INFO] stock_system - 📡 检查自选股 4 只...
+2026-03-12 13:57:02 [WARNING] stock_system - AKShare实时行情失败: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without
+2026-03-12 13:57:02 [ERROR] stock_system - 行情接口失败
+2026-03-12 13:57:02 [WARNING] stock_system - 未获取到行情数据
+2026-03-12 13:58:02 [INFO] stock_system - 📡 检查自选股 4 只...
+2026-03-12 13:58:07 [WARNING] stock_system - AKShare实时行情失败: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without
+2026-03-12 13:58:07 [ERROR] stock_system - 行情接口失败
+2026-03-12 13:58:07 [WARNING] stock_system - 未获取到行情数据
+2026-03-12 13:59:07 [INFO] stock_system - 📡 检查自选股 4 只...
+2026-03-12 13:59:12 [WARNING] stock_system - AKShare实时行情失败: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without
+2026-03-12 13:59:12 [ERROR] stock_system - 行情接口失败
+2026-03-12 13:59:12 [WARNING] stock_system - 未获取到行情数据
+2026-03-12 14:00:13 [INFO] stock_system - 📡 检查自选股 4 只...
+2026-03-12 14:00:17 [WARNING] stock_system - AKShare实时行情失败: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without
+2026-03-12 14:00:17 [ERROR] stock_system - 行情接口失败
+2026-03-12 14:00:17 [WARNING] stock_system - 未获取到行情数据
+2026-03-12 14:01:17 [INFO] stock_system - 📡 检查自选股 4 只...
+2026-03-12 14:01:23 [WARNING] stock_system - AKShare实时行情失败: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without
+2026-03-12 14:01:23 [ERROR] stock_system - 行情接口失败
+2026-03-12 14:01:23 [WARNING] stock_system - 未获取到行情数据
+2026-03-12 14:02:23 [INFO] stock_system - 📡 检查自选股 4 只...
+2026-03-12 14:02:28 [WARNING] stock_system - AKShare实时行情失败: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without
+2026-03-12 14:02:28 [ERROR] stock_system - 行情接口失败
+2026-03-12 14:02:28 [WARNING] stock_system - 未获取到行情数据
+2026-03-12 14:03:28 [INFO] stock_system - 📡 检查自选股 4 只...
+2026-03-12 14:03:34 [WARNING] stock_system - AKShare实时行情失败: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without
+2026-03-12 14:03:34 [ERROR] stock_system - 行情接口失败
+2026-03-12 14:03:34 [WARNING] stock_system - 未获取到行情数据
+2026-03-12 14:04:34 [INFO] stock_system - 📡 检查自选股 4 只...
+2026-03-12 14:04:39 [WARNING] stock_system - AKShare实时行情失败: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without
+2026-03-12 14:04:39 [ERROR] stock_system - 行情接口失败
+2026-03-12 14:04:39 [WARNING] stock_system - 未获取到行情数据
+2026-03-12 14:05:39 [INFO] stock_system - 📡 检查自选股 4 只...
+2026-03-12 14:05:44 [WARNING] stock_system - AKShare实时行情失败: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without
+2026-03-12 14:05:44 [ERROR] stock_system - 行情接口失败
+2026-03-12 14:05:44 [WARNING] stock_system - 未获取到行情数据
+2026-03-12 14:06:44 [INFO] stock_system - 📡 检查自选股 4 只...
+2026-03-12 14:06:50 [WARNING] stock_system - AKShare实时行情失败: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without
+2026-03-12 14:06:50 [ERROR] stock_system - 行情接口失败
+2026-03-12 14:06:50 [WARNING] stock_system - 未获取到行情数据
+2026-03-12 14:07:50 [INFO] stock_system - 📡 检查自选股 4 只...
+2026-03-12 14:07:55 [WARNING] stock_system - AKShare实时行情失败: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without
+2026-03-12 14:07:55 [ERROR] stock_system - 行情接口失败
+2026-03-12 14:07:55 [WARNING] stock_system - 未获取到行情数据
+2026-03-12 14:08:55 [INFO] stock_system - 📡 检查自选股 4 只...
+2026-03-12 14:09:00 [WARNING] stock_system - AKShare实时行情失败: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without
+2026-03-12 14:09:00 [ERROR] stock_system - 行情接口失败
+2026-03-12 14:09:00 [WARNING] stock_system - 未获取到行情数据
+2026-03-12 14:10:00 [INFO] stock_system - 📡 检查自选股 4 只...
+2026-03-12 14:10:06 [WARNING] stock_system - AKShare实时行情失败: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without
+2026-03-12 14:10:06 [ERROR] stock_system - 行情接口失败
+2026-03-12 14:10:06 [WARNING] stock_system - 未获取到行情数据
+2026-03-12 14:11:06 [INFO] stock_system - 📡 检查自选股 4 只...
+2026-03-12 14:11:11 [WARNING] stock_system - AKShare实时行情失败: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without
+2026-03-12 14:11:11 [ERROR] stock_system - 行情接口失败
+2026-03-12 14:11:11 [WARNING] stock_system - 未获取到行情数据
+2026-03-12 14:12:11 [INFO] stock_system - 📡 检查自选股 4 只...
+2026-03-12 14:12:16 [WARNING] stock_system - AKShare实时行情失败: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without
+2026-03-12 14:12:16 [ERROR] stock_system - 行情接口失败
+2026-03-12 14:12:16 [WARNING] stock_system - 未获取到行情数据
+2026-03-12 14:13:16 [INFO] stock_system - 📡 检查自选股 4 只...
+2026-03-12 14:13:22 [WARNING] stock_system - AKShare实时行情失败: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without
+2026-03-12 14:13:22 [ERROR] stock_system - 行情接口失败
+2026-03-12 14:13:22 [WARNING] stock_system - 未获取到行情数据
+2026-03-12 14:14:22 [INFO] stock_system - 📡 检查自选股 4 只...
+2026-03-12 14:14:27 [WARNING] stock_system - AKShare实时行情失败: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without
+2026-03-12 14:14:27 [ERROR] stock_system - 行情接口失败
+2026-03-12 14:14:27 [WARNING] stock_system - 未获取到行情数据
+2026-03-12 14:15:27 [INFO] stock_system - 📡 检查自选股 4 只...
+2026-03-12 14:15:32 [WARNING] stock_system - AKShare实时行情失败: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without
+2026-03-12 14:15:32 [ERROR] stock_system - 行情接口失败
+2026-03-12 14:15:32 [WARNING] stock_system - 未获取到行情数据
+2026-03-12 14:16:32 [INFO] stock_system - 📡 检查自选股 4 只...
+2026-03-12 14:16:38 [WARNING] stock_system - AKShare实时行情失败: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without
+2026-03-12 14:16:38 [ERROR] stock_system - 行情接口失败
+2026-03-12 14:16:38 [WARNING] stock_system - 未获取到行情数据
+2026-03-12 14:17:38 [INFO] stock_system - 📡 检查自选股 4 只...
+2026-03-12 14:17:44 [WARNING] stock_system - AKShare实时行情失败: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without
+2026-03-12 14:17:44 [ERROR] stock_system - 行情接口失败
+2026-03-12 14:17:44 [WARNING] stock_system - 未获取到行情数据
+2026-03-12 14:18:44 [INFO] stock_system - 📡 检查自选股 4 只...
+2026-03-12 14:18:49 [WARNING] stock_system - AKShare实时行情失败: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without
+2026-03-12 14:18:49 [ERROR] stock_system - 行情接口失败
+2026-03-12 14:18:49 [WARNING] stock_system - 未获取到行情数据
+2026-03-12 14:19:49 [INFO] stock_system - 📡 检查自选股 4 只...
+2026-03-12 14:19:55 [WARNING] stock_system - AKShare实时行情失败: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without
+2026-03-12 14:19:55 [ERROR] stock_system - 行情接口失败
+2026-03-12 14:19:55 [WARNING] stock_system - 未获取到行情数据
+2026-03-12 14:20:55 [INFO] stock_system - 📡 检查自选股 4 只...
+2026-03-12 14:21:01 [WARNING] stock_system - AKShare实时行情失败: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without
+2026-03-12 14:21:01 [ERROR] stock_system - 行情接口失败
+2026-03-12 14:21:01 [WARNING] stock_system - 未获取到行情数据
+2026-03-12 14:22:01 [INFO] stock_system - 📡 检查自选股 4 只...
+2026-03-12 14:22:09 [WARNING] stock_system - AKShare实时行情失败: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without
+2026-03-12 14:22:09 [ERROR] stock_system - 行情接口失败
+2026-03-12 14:22:09 [WARNING] stock_system - 未获取到行情数据
+2026-03-12 14:23:09 [INFO] stock_system - 📡 检查自选股 4 只...
+2026-03-12 14:23:14 [WARNING] stock_system - AKShare实时行情失败: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without
+2026-03-12 14:23:14 [ERROR] stock_system - 行情接口失败
+2026-03-12 14:23:14 [WARNING] stock_system - 未获取到行情数据
+2026-03-12 14:24:14 [INFO] stock_system - 📡 检查自选股 4 只...
+2026-03-12 14:24:20 [WARNING] stock_system - AKShare实时行情失败: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without
+2026-03-12 14:24:20 [ERROR] stock_system - 行情接口失败
+2026-03-12 14:24:20 [WARNING] stock_system - 未获取到行情数据
+2026-03-12 14:25:20 [INFO] stock_system - 📡 检查自选股 4 只...
+2026-03-12 14:25:24 [WARNING] stock_system - AKShare实时行情失败: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without
+2026-03-12 14:25:24 [ERROR] stock_system - 行情接口失败
+2026-03-12 14:25:24 [WARNING] stock_system - 未获取到行情数据
+2026-03-12 14:26:24 [INFO] stock_system - 📡 检查自选股 4 只...
+2026-03-12 14:26:30 [WARNING] stock_system - AKShare实时行情失败: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without
+2026-03-12 14:26:30 [ERROR] stock_system - 行情接口失败
+2026-03-12 14:26:30 [WARNING] stock_system - 未获取到行情数据
+2026-03-12 14:27:30 [INFO] stock_system - 📡 检查自选股 4 只...
+2026-03-12 14:27:35 [WARNING] stock_system - AKShare实时行情失败: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without
+2026-03-12 14:27:35 [ERROR] stock_system - 行情接口失败
+2026-03-12 14:27:35 [WARNING] stock_system - 未获取到行情数据
+2026-03-12 14:28:35 [INFO] stock_system - 📡 检查自选股 4 只...
+2026-03-12 14:28:40 [WARNING] stock_system - AKShare实时行情失败: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without
+2026-03-12 14:28:40 [ERROR] stock_system - 行情接口失败
+2026-03-12 14:28:40 [WARNING] stock_system - 未获取到行情数据
+2026-03-12 14:29:40 [INFO] stock_system - 📡 检查自选股 4 只...
+2026-03-12 14:29:46 [WARNING] stock_system - AKShare实时行情失败: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without
+2026-03-12 14:29:46 [ERROR] stock_system - 行情接口失败
+2026-03-12 14:29:46 [WARNING] stock_system - 未获取到行情数据
+2026-03-12 14:30:46 [INFO] stock_system - 📡 检查自选股 4 只...
+2026-03-12 14:30:51 [WARNING] stock_system - AKShare实时行情失败: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without
+2026-03-12 14:30:51 [ERROR] stock_system - 行情接口失败
+2026-03-12 14:30:51 [WARNING] stock_system - 未获取到行情数据
+2026-03-12 14:31:51 [INFO] stock_system - 📡 检查自选股 4 只...
+2026-03-12 14:31:57 [WARNING] stock_system - AKShare实时行情失败: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without
+2026-03-12 14:31:57 [ERROR] stock_system - 行情接口失败
+2026-03-12 14:31:57 [WARNING] stock_system - 未获取到行情数据
+2026-03-12 14:32:57 [INFO] stock_system - 📡 检查自选股 4 只...
+2026-03-12 14:33:03 [WARNING] stock_system - AKShare实时行情失败: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without
+2026-03-12 14:33:03 [ERROR] stock_system - 行情接口失败
+2026-03-12 14:33:03 [WARNING] stock_system - 未获取到行情数据
+2026-03-12 14:34:03 [INFO] stock_system - 📡 检查自选股 4 只...
+2026-03-12 14:34:08 [WARNING] stock_system - AKShare实时行情失败: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without
+2026-03-12 14:34:08 [ERROR] stock_system - 行情接口失败
+2026-03-12 14:34:08 [WARNING] stock_system - 未获取到行情数据
+2026-03-12 14:35:08 [INFO] stock_system - 📡 检查自选股 4 只...
+2026-03-12 14:35:13 [WARNING] stock_system - AKShare实时行情失败: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without
+2026-03-12 14:35:13 [ERROR] stock_system - 行情接口失败
+2026-03-12 14:35:13 [WARNING] stock_system - 未获取到行情数据
+2026-03-12 14:36:13 [INFO] stock_system - 📡 检查自选股 4 只...
+2026-03-12 14:36:19 [WARNING] stock_system - AKShare实时行情失败: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without
+2026-03-12 14:36:19 [ERROR] stock_system - 行情接口失败
+2026-03-12 14:36:19 [WARNING] stock_system - 未获取到行情数据
+2026-03-12 14:37:19 [INFO] stock_system - 📡 检查自选股 4 只...
+2026-03-12 14:37:25 [WARNING] stock_system - AKShare实时行情失败: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without
+2026-03-12 14:37:25 [ERROR] stock_system - 行情接口失败
+2026-03-12 14:37:25 [WARNING] stock_system - 未获取到行情数据
+2026-03-12 14:38:25 [INFO] stock_system - 📡 检查自选股 4 只...
+2026-03-12 14:38:29 [WARNING] stock_system - AKShare实时行情失败: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without
+2026-03-12 14:38:29 [ERROR] stock_system - 行情接口失败
+2026-03-12 14:38:29 [WARNING] stock_system - 未获取到行情数据
+2026-03-12 14:39:29 [INFO] stock_system - 📡 检查自选股 4 只...
+2026-03-12 14:39:35 [WARNING] stock_system - AKShare实时行情失败: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without
+2026-03-12 14:39:35 [ERROR] stock_system - 行情接口失败
+2026-03-12 14:39:35 [WARNING] stock_system - 未获取到行情数据
+2026-03-12 14:40:35 [INFO] stock_system - 📡 检查自选股 4 只...
+2026-03-12 14:40:41 [WARNING] stock_system - AKShare实时行情失败: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without
+2026-03-12 14:40:41 [ERROR] stock_system - 行情接口失败
+2026-03-12 14:40:41 [WARNING] stock_system - 未获取到行情数据
+2026-03-12 14:41:41 [INFO] stock_system - 📡 检查自选股 4 只...
+2026-03-12 14:41:46 [WARNING] stock_system - AKShare实时行情失败: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without
+2026-03-12 14:41:46 [ERROR] stock_system - 行情接口失败
+2026-03-12 14:41:46 [WARNING] stock_system - 未获取到行情数据
+2026-03-12 14:42:46 [INFO] stock_system - 📡 检查自选股 4 只...
+2026-03-12 14:42:52 [WARNING] stock_system - AKShare实时行情失败: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without
+2026-03-12 14:42:52 [ERROR] stock_system - 行情接口失败
+2026-03-12 14:42:52 [WARNING] stock_system - 未获取到行情数据
+2026-03-12 14:43:52 [INFO] stock_system - 📡 检查自选股 4 只...
+2026-03-12 14:43:58 [WARNING] stock_system - AKShare实时行情失败: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without
+2026-03-12 14:43:58 [ERROR] stock_system - 行情接口失败
+2026-03-12 14:43:58 [WARNING] stock_system - 未获取到行情数据
+2026-03-12 14:44:58 [INFO] stock_system - 📡 检查自选股 4 只...
+2026-03-12 14:45:04 [WARNING] stock_system - AKShare实时行情失败: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without
+2026-03-12 14:45:04 [ERROR] stock_system - 行情接口失败
+2026-03-12 14:45:04 [WARNING] stock_system - 未获取到行情数据
+2026-03-12 14:46:04 [INFO] stock_system - 📡 检查自选股 4 只...
+2026-03-12 14:46:10 [WARNING] stock_system - AKShare实时行情失败: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without
+2026-03-12 14:46:10 [ERROR] stock_system - 行情接口失败
+2026-03-12 14:46:10 [WARNING] stock_system - 未获取到行情数据
+2026-03-12 14:47:10 [INFO] stock_system - 📡 检查自选股 4 只...
+2026-03-12 14:47:16 [WARNING] stock_system - AKShare实时行情失败: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without
+2026-03-12 14:47:16 [ERROR] stock_system - 行情接口失败
+2026-03-12 14:47:16 [WARNING] stock_system - 未获取到行情数据
+2026-03-12 14:48:16 [INFO] stock_system - 📡 检查自选股 4 只...
+2026-03-12 14:48:22 [WARNING] stock_system - AKShare实时行情失败: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without
+2026-03-12 14:48:22 [ERROR] stock_system - 行情接口失败
+2026-03-12 14:48:22 [WARNING] stock_system - 未获取到行情数据
+2026-03-12 14:49:22 [INFO] stock_system - 📡 检查自选股 4 只...
+2026-03-12 14:49:28 [WARNING] stock_system - AKShare实时行情失败: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without
+2026-03-12 14:49:28 [ERROR] stock_system - 行情接口失败
+2026-03-12 14:49:28 [WARNING] stock_system - 未获取到行情数据
+2026-03-12 14:50:28 [INFO] stock_system - 📡 检查自选股 4 只...
+2026-03-12 14:50:34 [WARNING] stock_system - AKShare实时行情失败: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without
+2026-03-12 14:50:34 [ERROR] stock_system - 行情接口失败
+2026-03-12 14:50:34 [WARNING] stock_system - 未获取到行情数据
+2026-03-12 14:51:34 [INFO] stock_system - 📡 检查自选股 4 只...
+2026-03-12 14:51:39 [WARNING] stock_system - AKShare实时行情失败: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without
+2026-03-12 14:51:39 [ERROR] stock_system - 行情接口失败
+2026-03-12 14:51:39 [WARNING] stock_system - 未获取到行情数据
+2026-03-12 14:52:39 [INFO] stock_system - 📡 检查自选股 4 只...
+2026-03-12 14:52:44 [WARNING] stock_system - AKShare实时行情失败: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without
+2026-03-12 14:52:44 [ERROR] stock_system - 行情接口失败
+2026-03-12 14:52:44 [WARNING] stock_system - 未获取到行情数据
+2026-03-12 14:53:44 [INFO] stock_system - 📡 检查自选股 4 只...
+2026-03-12 14:53:49 [WARNING] stock_system - AKShare实时行情失败: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without
+2026-03-12 14:53:49 [ERROR] stock_system - 行情接口失败
+2026-03-12 14:53:49 [WARNING] stock_system - 未获取到行情数据
+2026-03-12 14:54:49 [INFO] stock_system - 📡 检查自选股 4 只...
+2026-03-12 14:54:54 [WARNING] stock_system - AKShare实时行情失败: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without
+2026-03-12 14:54:54 [ERROR] stock_system - 行情接口失败
+2026-03-12 14:54:54 [WARNING] stock_system - 未获取到行情数据
+2026-03-12 14:55:54 [INFO] stock_system - 📡 检查自选股 4 只...
+2026-03-12 14:56:00 [WARNING] stock_system - AKShare实时行情失败: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without
+2026-03-12 14:56:00 [ERROR] stock_system - 行情接口失败
+2026-03-12 14:56:00 [WARNING] stock_system - 未获取到行情数据
+2026-03-12 14:57:00 [INFO] stock_system - 📡 检查自选股 4 只...
+2026-03-12 14:57:06 [WARNING] stock_system - AKShare实时行情失败: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without
+2026-03-12 14:57:06 [ERROR] stock_system - 行情接口失败
+2026-03-12 14:57:06 [WARNING] stock_system - 未获取到行情数据
+2026-03-12 14:58:06 [INFO] stock_system - 📡 检查自选股 4 只...
+2026-03-12 14:58:11 [WARNING] stock_system - AKShare实时行情失败: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without
+2026-03-12 14:58:11 [ERROR] stock_system - 行情接口失败
+2026-03-12 14:58:11 [WARNING] stock_system - 未获取到行情数据
+2026-03-12 14:59:11 [INFO] stock_system - 📡 检查自选股 4 只...
+2026-03-12 14:59:17 [WARNING] stock_system - AKShare实时行情失败: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without
+2026-03-12 14:59:17 [ERROR] stock_system - 行情接口失败
+2026-03-12 14:59:17 [WARNING] stock_system - 未获取到行情数据
+2026-03-12 15:00:17 [INFO] stock_system - 📡 检查自选股 4 只...
+2026-03-12 15:00:22 [WARNING] stock_system - AKShare实时行情失败: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without
+2026-03-12 15:00:22 [ERROR] stock_system - 行情接口失败
+2026-03-12 15:00:22 [WARNING] stock_system - 未获取到行情数据
+2026-03-12 15:01:22 [INFO] stock_system - 📡 检查自选股 4 只...
+2026-03-12 15:01:28 [WARNING] stock_system - AKShare实时行情失败: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without
+2026-03-12 15:01:28 [ERROR] stock_system - 行情接口失败
+2026-03-12 15:01:28 [WARNING] stock_system - 未获取到行情数据
+2026-03-12 15:02:28 [INFO] stock_system - 📡 检查自选股 4 只...
+2026-03-12 15:02:34 [WARNING] stock_system - AKShare实时行情失败: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without
+2026-03-12 15:02:34 [ERROR] stock_system - 行情接口失败
+2026-03-12 15:02:34 [WARNING] stock_system - 未获取到行情数据
+2026-03-12 15:03:34 [INFO] stock_system - 📡 检查自选股 4 只...
+2026-03-12 15:03:44 [WARNING] stock_system - AKShare实时行情失败: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without
+2026-03-12 15:03:44 [ERROR] stock_system - 行情接口失败
+2026-03-12 15:03:44 [WARNING] stock_system - 未获取到行情数据
+2026-03-12 15:04:44 [INFO] stock_system - 📡 检查自选股 4 只...
+2026-03-12 15:04:50 [WARNING] stock_system - AKShare实时行情失败: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without
+2026-03-12 15:04:50 [ERROR] stock_system - 行情接口失败
+2026-03-12 15:04:50 [WARNING] stock_system - 未获取到行情数据
+2026-03-12 15:05:50 [INFO] stock_system - 📡 检查自选股 4 只...
+2026-03-12 15:05:57 [WARNING] stock_system - AKShare实时行情失败: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without
+2026-03-12 15:05:57 [ERROR] stock_system - 行情接口失败
+2026-03-12 15:05:57 [WARNING] stock_system - 未获取到行情数据
+2026-03-12 17:00:00 [INFO] stock_system - ============================================================
+2026-03-12 17:00:00 [INFO] stock_system - 执行定时任务: 板块分析
+2026-03-12 17:00:00 [INFO] stock_system - ==================================================
+2026-03-12 17:00:00 [INFO] stock_system - 开始每日板块分析...
+2026-03-12 17:00:00 [INFO] stock_system - Step1: 获取板块行情...
+2026-03-12 17:00:05 [WARNING] stock_system - AKShare板块接口失败: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without
+2026-03-12 17:00:05 [ERROR] stock_system - 板块接口失败
+2026-03-12 17:00:05 [WARNING] stock_system - 板块分析状态异常: no_data
+2026-03-12 22:17:33 [INFO] stock_system - 
+收到停止信号，正在关闭系统...
+2026-03-12 22:17:33 [INFO] stock_system - ============================================================
+2026-03-12 22:17:33 [INFO] stock_system - 🛑 系统停止中...
+2026-03-12 22:17:33 [INFO] stock_system - 定时任务调度器已停止
+2026-03-12 22:17:33 [INFO] stock_system - 监控模块已停止
+2026-03-12 22:17:33 [INFO] stock_system - ✅ 系统已停止
+2026-03-12 22:17:33 [INFO] stock_system - ============================================================
