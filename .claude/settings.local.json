@@ -103,7 +103,12 @@
       "Bash(pip3 install yfinance -q && python3 -c \"import yfinance as yf; df = yf.download\\('600519.SS', period='5d'\\); print\\(df.tail\\(3\\)\\)\" 2>&1)",
       "Bash(cd /Users/maxchen/Desktop/claudeForStock/stock_system && python test_realtime_push.py)",
       "Bash(python test_realtime_push.py)",
-      "Bash(find /Users/maxchen/Desktop/claudeForStock -name \"*.txt\" -o -name \"*.json\" -o -name \"*.db\" 2>/dev/null | head -20)"
+      "Bash(find /Users/maxchen/Desktop/claudeForStock -name \"*.txt\" -o -name \"*.json\" -o -name \"*.db\" 2>/dev/null | head -20)",
+      "Bash(python test_sector_push.py)",
+      "Bash(python -c \"\nfrom data.shenwan_service import shenwan_service\n\nprint\\('获取申万一级行业实时行情...'\\)\nprint\\('='*80\\)\n\ndf = shenwan_service.get_shenwan_level1_realtime\\(\\)\n\nif not df.empty:\n    print\\(f'\\\\\\\\n成功获取 {len\\(df\\)} 个行业\\\\\\\\n'\\)\n    print\\('涨幅榜 TOP10：'\\)\n    print\\('-'*80\\)\n    for i, row in df.head\\(10\\).iterrows\\(\\):\n        name = row['板块名称']\n        change = row['涨跌幅']\n        leader = row['领涨股票']\n        leader_change = row['领涨股票涨跌幅']\n        print\\(f'{name:12s} 涨幅: {change:>6.2f}%  领涨股: {leader}\\({leader_change:+.2f}%\\)'\\)\nelse:\n    print\\('获取失败'\\)\n\")",
+      "Bash(python -c \"\nimport akshare as ak\n\ntry:\n    df = ak.stock_board_industry_name_ths\\(\\)\n    \n    print\\('同花顺行业板块数据：'\\)\n    print\\('='*70\\)\n    print\\(f'总数: {len\\(df\\)} 个\\\\\\\\n'\\)\n    \n    print\\('列名:', df.columns.tolist\\(\\)\\)\n    print\\(\\)\n    \n    print\\('前5行数据：'\\)\n    print\\(df.head\\(\\)\\)\n    \nexcept Exception as e:\n    print\\(f'失败: {e}'\\)\n\")",
+      "Bash(python -c \"\nfrom data.ths_service import ths_service\n\nprint\\('获取同花顺行业实时行情...'\\)\nprint\\('='*80\\)\n\ndf = ths_service.get_ths_industry_realtime\\(\\)\n\nif not df.empty:\n    print\\(f'\\\\\\\\n成功获取 {len\\(df\\)} 个行业\\\\\\\\n'\\)\n    print\\('涨幅榜 TOP15：'\\)\n    print\\('-'*80\\)\n    for i, row in df.head\\(15\\).iterrows\\(\\):\n        name = row['板块名称']\n        change = row['涨跌幅']\n        leader = row['领涨股票']\n        print\\(f'{name:15s} 涨幅: {change:>6.2f}%  领涨股: {leader}'\\)\nelse:\n    print\\('获取失败'\\)\n\")",
+      "Bash(python -c \"\nfrom data.ths_service import ths_service\n\ndf = ths_service.get_ths_industry_realtime\\(\\)\n\nprint\\('同花顺行业涨幅榜 TOP15：'\\)\nprint\\('='*80\\)\n\nfor i, row in df.head\\(15\\).iterrows\\(\\):\n    name = row['板块名称']\n    change = row['涨跌幅']\n    leader = row['领涨股票']\n    print\\(f'{i+1:2d}. {name:20s} {change:>6.2f}%  领涨: {leader}'\\)\n\")"
     ]
   }
 }

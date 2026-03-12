@@ -316,16 +316,16 @@ class MarketDataService:
 # ═══════════════════════════════════════════════════════════
 #  板块数据（腾讯申万行业指数）
 # ═══════════════════════════════════════════════════════════
-# 申万一级行业指数代码
+# 腾讯主题指数代码（注意：这些不是申万行业指数，而是各类主题指数）
 SW_INDUSTRY_INDEX = {
-    "sz399975": "证券", "sz399976": "银行", "sz399977": "房地产",
-    "sz399978": "食品饮料", "sz399979": "医药生物", "sz399980": "电子",
-    "sz399981": "计算机", "sz399982": "通信", "sz399983": "煤炭",
-    "sz399984": "钢铁", "sz399985": "有色金属", "sz399986": "建筑装饰",
-    "sz399987": "农林牧渔", "sz399988": "汽车", "sz399989": "家用电器",
-    "sz399990": "纺织服装", "sz399991": "机械设备", "sz399992": "交通运输",
-    "sz399993": "电力设备", "sz399994": "国防军工", "sz399995": "传媒",
-    "sz399996": "环保", "sz399997": "美容护理",
+    "sz399975": "证券公司", "sz399976": "CS新能车", "sz399977": "内地低碳",
+    "sz399978": "医药100", "sz399979": "大宗商品", "sz399980": "中证超大",
+    "sz399981": "300分层", "sz399982": "500等权", "sz399983": "地产等权",
+    "sz399984": "300等权", "sz399985": "中证全指", "sz399986": "中证银行",
+    "sz399987": "中证酒", "sz399989": "中证医疗", "sz399990": "煤炭等权",
+    "sz399991": "一带一路", "sz399992": "CSWD并购", "sz399993": "CSWD生科",
+    "sz399994": "信息安全", "sz399995": "基建工程", "sz399996": "智能家居",
+    "sz399997": "中证白酒",
 }
 
 
@@ -335,7 +335,50 @@ class SectorDataService:
     @staticmethod
     @cached(ttl=120)
     def get_sector_realtime() -> pd.DataFrame:
-        """获取行业板块实时行情 - AKShare"""
+        """获取行业板块实时行情 - 同花顺细分（主）+ 申万一级（备用）"""
+
+        # 方法1: 同花顺细分行业（97个行业，更细分）
+        try:
+            from data.ths_service import ths_service
+            df = ths_service.get_ths_industry_realtime()
+            if not df.empty:
+                logger.info(f"获取板块实时行情 {len(df)} 个 (同花顺细分)")
+                return df
+        except Exception as e:
+            logger.warning(f"同花顺行业接口失败: {str(e)[:80]}")
+
+        # 方法2: 申万一级行业（31个行业）
+        try:
+            from data.shenwan_service import shenwan_service
+            df = shenwan_service.get_shenwan_level1_realtime()
+            if not df.empty:
+                logger.info(f"获取板块实时行情 {len(df)} 个 (申万一级)")
+                return df
+        except Exception as e:
+            logger.warning(f"申万行业接口失败: {str(e)[:80]}")
+
+        # 方法3: 腾讯主题指数
+        try:
+            codes = list(SW_INDUSTRY_INDEX.keys())
+            df = TencentAPI.get_batch_quotes(codes)
+            if not df.empty:
+                # 添加板块名称
+                df['sector_name'] = df['code'].apply(lambda x: SW_INDUSTRY_INDEX.get(f"sz{x}", x))
+                # 重命名列以匹配原格式
+                df = df.rename(columns={
+                    'sector_name': '板块名称',
+                    'code': '板块代码',
+                    'price': '最新价',
+                    'change_pct': '涨跌幅',
+                    'market_cap': '总市值',
+                    'turnover_rate': '换手率'
+                })
+                logger.info(f"获取板块实时行情 {len(df)} 个 (腾讯主题指数)")
+                return df
+        except Exception as e:
+            logger.warning(f"腾讯板块接口失败: {str(e)[:80]}")
+
+        # 方法4: AKShare 备用
         if ak:
             try:
                 df = ak.stock_board_industry_name_em()
@@ -345,7 +388,7 @@ class SectorDataService:
             except Exception as e:
                 logger.warning(f"AKShare板块接口失败: {str(e)[:80]}")
 
-        logger.error("板块接口失败")
+        logger.error("所有板块接口失败")
         return pd.DataFrame()
 
     @staticmethod
