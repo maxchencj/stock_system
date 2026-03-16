@@ -44,21 +44,35 @@ class TaskScheduler:
             replace_existing=True
         )
 
-        # 市场早报（每天早上8:00，包括周末）
+        # 市场早报（仅周一到周五早上8:00）
         self.scheduler.add_job(
             self.morning_brief_task,
-            CronTrigger(hour=8, minute=0),
+            CronTrigger(hour=8, minute=0, day_of_week="mon-fri"),
             id="morning_brief",
             name="市场早报",
             replace_existing=True
         )
 
-        # 实时行情推送（交易日9:30-15:00，每1分钟）
+        # 实时行情推送（交易日 9:15-11:30 和 13:00-15:00，每5分钟）
         self.scheduler.add_job(
             self.realtime_market_push_task,
-            CronTrigger(hour="9-14", minute="*", day_of_week="mon-fri"),
-            id="realtime_market_push",
-            name="实时行情推送",
+            CronTrigger(hour="9-11", minute="15,20,25,30,35,40,45,50,55", day_of_week="mon-fri"),
+            id="realtime_market_push_am",
+            name="实时行情推送(上午)",
+            replace_existing=True
+        )
+        self.scheduler.add_job(
+            self.realtime_market_push_task,
+            CronTrigger(hour="10,11", minute="0,5,10,15,20,25,30", day_of_week="mon-fri"),
+            id="realtime_market_push_am2",
+            name="实时行情推送(上午2)",
+            replace_existing=True
+        )
+        self.scheduler.add_job(
+            self.realtime_market_push_task,
+            CronTrigger(hour="13,14", minute="0,5,10,15,20,25,30,35,40,45,50,55", day_of_week="mon-fri"),
+            id="realtime_market_push_pm",
+            name="实时行情推送(下午)",
             replace_existing=True
         )
 
@@ -172,8 +186,10 @@ class TaskScheduler:
         hour = now.hour
         minute = now.minute
 
-        # 只在交易时间内推送（9:30-15:00）
-        if hour < 9 or (hour == 9 and minute < 30) or hour >= 15:
+        # 只在交易时间内推送（9:15-11:30 和 13:00-15:00）
+        am_session = (hour == 9 and minute >= 15) or (hour == 10) or (hour == 11 and minute <= 30)
+        pm_session = (hour == 13) or (hour == 14)
+        if not (am_session or pm_session):
             return
 
         logger.info("执行实时行情推送")
