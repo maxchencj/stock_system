@@ -9,4 +9,4 @@ if [ -f .env ]; then
 fi
 
 # 启动系统
-exec /Library/Frameworks/Python.framework/Versions/3.11/bin/python3 main.py
+exec /opt/homebrew/bin/python3.9 main.py

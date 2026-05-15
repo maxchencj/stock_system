@@ -1,46 +1,42 @@
 """
-AI 分析引擎 - 使用 Claude (Anthropic) API
+AI 分析引擎 - 使用 DeepSeek API (OpenAI 兼容)
 综合研判 + 报告生成
 """
 import json
 import os
 from typing import Dict, List, Optional
-import anthropic
+from openai import OpenAI
 
 from config.settings import config
 from utils.logger import logger
 
 
 class AIAnalysisEngine:
-    """Claude AI 分析引擎 - 支持官方及中转代理"""
+    """DeepSeek AI 分析引擎"""
 
     def __init__(self):
-        base_url = os.getenv("ANTHROPIC_BASE_URL", "").strip()
-        if base_url:
-            # 中转代理模式
-            self.client = anthropic.Anthropic(
-                api_key=config.ai.api_key,
-                base_url=base_url
-            )
-            logger.info(f"AI 引擎使用中转代理: {base_url}")
-        else:
-            # 官方直连模式
-            self.client = anthropic.Anthropic(api_key=config.ai.api_key)
-            logger.info("AI 引擎使用官方直连")
+        base_url = os.getenv("DEEPSEEK_BASE_URL", "https://api.deepseek.com").strip()
+        self.client = OpenAI(
+            api_key=config.ai.api_key,
+            base_url=base_url
+        )
+        logger.info(f"AI 引擎已连接 DeepSeek: {base_url}")
         self.model = config.ai.model
 
     def _call(self, system_prompt: str, user_prompt: str,
                max_tokens: int = None, as_json: bool = False) -> str:
-        """调用 Claude API"""
+        """调用 DeepSeek API"""
         try:
-            response = self.client.messages.create(
+            response = self.client.chat.completions.create(
                 model=self.model,
                 max_tokens=max_tokens or config.ai.max_tokens,
                 temperature=config.ai.temperature,
-                system=system_prompt,
-                messages=[{"role": "user", "content": user_prompt}]
+                messages=[
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": user_prompt}
+                ]
             )
-            text = response.content[0].text.strip()
+            text = response.choices[0].message.content.strip()
             if as_json:
                 # 提取JSON内容
                 if "```json" in text:

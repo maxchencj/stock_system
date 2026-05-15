@@ -442,7 +442,7 @@ class MoneyFlowService:
         if not ak:
             return pd.DataFrame()
         try:
-            df = ak.stock_fund_flow_industry(symbol="今日")
+            df = ak.stock_fund_flow_industry(symbol="即时")
             if df is None or df.empty:
                 return pd.DataFrame()
             logger.info(f"获取板块资金流向 {len(df)} 条")

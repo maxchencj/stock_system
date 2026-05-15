@@ -13,7 +13,7 @@ numpy==1.26.2
 akshare>=1.18.0
 
 # AI引擎
-anthropic==0.7.8
+openai>=1.0.0
 
 # 定时任务
 apscheduler==3.10.4

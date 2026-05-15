@@ -19,8 +19,8 @@ if os.path.exists(_env_path):
 @dataclass
 class AIConfig:
     """AI 分析引擎配置"""
-    api_key: str = os.getenv("ANTHROPIC_API_KEY", "")
-    model: str = "claude-opus-4-5-20251101"
+    api_key: str = os.getenv("DEEPSEEK_API_KEY", "")
+    model: str = "deepseek-v4-flash"
     max_tokens: int = 4096
     temperature: float = 0.3  # 低温度保证分析稳定性
 

@@ -50075,3 +50075,52 @@ nohup: python: No such file or directory
 2026-03-24 22:12:27 [INFO] stock_system - ============================================================
 2026-03-24 22:12:27 [INFO] stock_system - ============================================================
 2026-03-24 22:12:27 [INFO] stock_system - ============================================================
+2026-05-15 23:18:10 [INFO] stock_system - AI 引擎已连接 DeepSeek: https://api.deepseek.com
+2026-05-15 23:19:08 [INFO] stock_system - Telegram推送成功
+2026-05-15 23:19:20 [INFO] stock_system - AI 引擎已连接 DeepSeek: https://api.deepseek.com
+2026-05-15 23:26:45 [INFO] stock_system - AI 引擎已连接 DeepSeek: https://api.deepseek.com
+2026-05-15 23:26:45 [INFO] stock_system - 加载自选股 4 只
+2026-05-15 23:26:45 [INFO] stock_system - ============================================================
+2026-05-15 23:26:45 [INFO] stock_system - 🚀 股票智能分析系统启动中...
+2026-05-15 23:26:45 [INFO] stock_system - ============================================================
+2026-05-15 23:26:45 [INFO] stock_system - 定时任务调度器已启动
+2026-05-15 23:26:45 [INFO] stock_system - 已注册定时任务 6 个:
+2026-05-15 23:26:45 [INFO] stock_system -   - 市场早报 (ID: morning_brief) | 下次运行: 2026-05-18 08:00:00+08:00
+2026-05-15 23:26:45 [INFO] stock_system -   - 实时行情推送(上午) (ID: realtime_market_push_am) | 下次运行: 2026-05-18 09:15:00+08:00
+2026-05-15 23:26:45 [INFO] stock_system -   - 每日选股 (ID: daily_stock_pick) | 下次运行: 2026-05-18 09:45:00+08:00
+2026-05-15 23:26:45 [INFO] stock_system -   - 实时行情推送(上午2) (ID: realtime_market_push_am2) | 下次运行: 2026-05-18 10:00:00+08:00
+2026-05-15 23:26:45 [INFO] stock_system -   - 实时行情推送(下午) (ID: realtime_market_push_pm) | 下次运行: 2026-05-18 13:00:00+08:00
+2026-05-15 23:26:45 [INFO] stock_system -   - 板块分析 (ID: daily_sector_analysis) | 下次运行: 2026-05-18 17:00:00+08:00
+2026-05-15 23:26:45 [INFO] stock_system - 📡 监控模块已启动，监控 4 只: [603993]洛阳钼业, [000559]万向钱潮, [600550]保变电气, [601138]工业富联
+2026-05-15 23:26:45 [INFO] stock_system - ============================================================
+2026-05-15 23:26:45 [INFO] stock_system - ✅ 系统启动完成
+2026-05-15 23:26:45 [INFO] stock_system - ============================================================
+2026-05-15 23:26:45 [INFO] stock_system - 按 Ctrl+C 停止系统
+2026-05-15 23:27:11 [INFO] stock_system - AI 引擎已连接 DeepSeek: https://api.deepseek.com
+2026-05-15 23:27:25 [INFO] stock_system - Telegram推送成功
+2026-05-15 23:29:30 [INFO] stock_system - AI 引擎已连接 DeepSeek: https://api.deepseek.com
+2026-05-15 23:29:30 [INFO] stock_system - ==================================================
+2026-05-15 23:29:30 [INFO] stock_system - 开始每日板块分析...
+2026-05-15 23:29:30 [INFO] stock_system - Step1: 获取板块行情...
+2026-05-15 23:31:30 [INFO] stock_system - 获取同花顺行业 101 个
+2026-05-15 23:31:30 [INFO] stock_system - 获取板块实时行情 101 个 (同花顺细分)
+2026-05-15 23:31:30 [INFO] stock_system - 获取板块 101 个
+2026-05-15 23:31:30 [INFO] stock_system - Step2: 获取资金流向...
+2026-05-15 23:31:42 [ERROR] stock_system - 获取板块资金流向失败: Length mismatch: Expected axis has 11 elements, new values have 8 elements
+2026-05-15 23:31:42 [INFO] stock_system - Step3: AI板块轮动分析...
+2026-05-15 23:32:02 [INFO] stock_system - 板块分析完成，耗时 151.4s
+2026-05-15 23:32:05 [INFO] stock_system - Telegram推送成功
+2026-05-15 23:36:20 [INFO] stock_system - 获取板块资金流向 90 条
+2026-05-15 23:37:47 [INFO] stock_system - 获取实时行情 4 只 (腾讯财经)
+2026-05-15 23:38:02 [INFO] stock_system - 获取实时行情 4 只 (腾讯财经)
+2026-05-15 23:38:04 [INFO] stock_system - Telegram推送成功
+2026-05-15 23:39:54 [INFO] stock_system - AI 引擎已连接 DeepSeek: https://api.deepseek.com
+2026-05-15 23:39:55 [INFO] stock_system - 加载自选股 4 只
+2026-05-15 23:40:10 [INFO] stock_system - 获取实时行情 1 只 (腾讯财经)
+2026-05-15 23:40:29 [INFO] stock_system - AI 引擎已连接 DeepSeek: https://api.deepseek.com
+2026-05-15 23:40:35 [INFO] stock_system - AI 引擎已连接 DeepSeek: https://api.deepseek.com
+2026-05-15 23:40:44 [INFO] stock_system - AI 引擎已连接 DeepSeek: https://api.deepseek.com
+2026-05-15 23:42:44 [INFO] stock_system - 获取同花顺行业 101 个
+2026-05-15 23:42:44 [INFO] stock_system - 获取板块实时行情 101 个 (同花顺细分)
+2026-05-15 23:42:53 [INFO] stock_system - 获取板块资金流向 90 条
+2026-05-15 23:43:11 [INFO] stock_system - AI 引擎已连接 DeepSeek: https://api.deepseek.com

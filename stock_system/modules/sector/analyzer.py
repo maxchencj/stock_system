@@ -70,9 +70,10 @@ class SectorAnalysisModule:
             flow_df = money_flow_service.get_sector_money_flow()
             if not flow_df.empty:
                 flow_col_map = {
-                    "行业": "sector", "今日": "today_flow",
-                    "今日排名": "rank", "5日": "flow_5d",
-                    "10日": "flow_10d"
+                    "行业": "sector", "净额": "today_flow",
+                    "行业-涨跌幅": "change_pct", "流入资金": "inflow",
+                    "流出资金": "outflow", "领涨股": "top_stock",
+                    "公司家数": "company_count"
                 }
                 flow_df = flow_df.rename(columns={k: v for k, v in flow_col_map.items() if k in flow_df.columns})
                 result["money_flow"] = flow_df.head(20).to_dict("records")

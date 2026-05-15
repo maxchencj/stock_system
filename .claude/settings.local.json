@@ -115,7 +115,19 @@
       "Bash(pkill -f \"python3 main.py\" && echo \"系统已关闭\")",
       "Bash(xargs kill)",
       "Bash(crontab -l 2>/dev/null | grep -v \"^#\")",
-      "Bash(launchctl unload ~/Library/LaunchAgents/com.stock.analysis.system.plist 2>/dev/null; rm ~/Library/LaunchAgents/com.stock.analysis.system.plist && echo \"已删除自动启动服务\")"
+      "Bash(launchctl unload ~/Library/LaunchAgents/com.stock.analysis.system.plist 2>/dev/null; rm ~/Library/LaunchAgents/com.stock.analysis.system.plist && echo \"已删除自动启动服务\")",
+      "Bash(pip install *)",
+      "Bash(python *)",
+      "Bash(echo \"PID: $!\")",
+      "Bash(python3 -c \"import platform; print\\(platform.machine\\(\\)\\)\")",
+      "Bash(arch -arm64 python3 --version)",
+      "Read(//opt/homebrew/bin/**)",
+      "Bash(conda info *)",
+      "Bash(/opt/homebrew/bin/python3.9 --version)",
+      "Bash(/opt/homebrew/bin/python3.9 -c \"import platform; print\\(platform.machine\\(\\)\\)\")",
+      "Bash(/opt/homebrew/bin/python3.9 *)",
+      "Bash(launchctl unload *)",
+      "Bash(launchctl load *)"
     ]
   }
 }
