@@ -43,10 +43,10 @@ class PushPlusNotifier:
 class TelegramNotifier:
     """Telegram Bot 推送"""
 
-    def __init__(self):
-        self.token = config.notify.telegram_token
-        self.chat_id = config.notify.telegram_chat_id
-        self.enabled = config.notify.telegram_enabled and bool(self.token) and bool(self.chat_id)
+    def __init__(self, token: str = "", chat_id: str = ""):
+        self.token = token or config.notify.telegram_token
+        self.chat_id = chat_id or config.notify.telegram_chat_id
+        self.enabled = bool(self.token) and bool(self.chat_id)
         self.api_url = f"https://api.telegram.org/bot{self.token}/sendMessage"
 
     def send(self, message: str, parse_mode: str = "Markdown") -> bool:
@@ -73,12 +73,29 @@ class TelegramNotifier:
             return False
 
 
+class USNotificationService:
+    """美股专用通知服务（第二个 Telegram Bot）"""
+
+    def __init__(self):
+        self.telegram = TelegramNotifier(
+            token=config.us_stock.telegram_token,
+            chat_id=config.us_stock.telegram_chat_id,
+        )
+
+    def send(self, message: str) -> bool:
+        if not self.telegram.enabled:
+            logger.warning("美股 Telegram Bot 未配置，跳过推送")
+            return False
+        return self.telegram.send(message)
+
+
 class NotificationService:
     """统一通知服务"""
 
     def __init__(self):
         self.pushplus = PushPlusNotifier()
         self.telegram = TelegramNotifier()
+        self.us = USNotificationService()
 
     def send_all(self, title: str, content: str):
         """发送到所有启用的通知渠道"""

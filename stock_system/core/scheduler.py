@@ -76,6 +76,57 @@ class TaskScheduler:
             replace_existing=True
         )
 
+        # ── 美股任务 ──────────────────────────────────────────
+        # 每日热门推荐（20:00，盘前1.5小时）
+        self.scheduler.add_job(
+            self.us_daily_picks_task,
+            CronTrigger(hour=20, minute=0, day_of_week="mon-fri"),
+            id="us_daily_picks", name="美股每日推荐", replace_existing=True
+        )
+        # 盘前异动预警（20:30）
+        self.scheduler.add_job(
+            self.us_premarket_task,
+            CronTrigger(hour=20, minute=30, day_of_week="mon-fri"),
+            id="us_premarket", name="美股盘前异动", replace_existing=True
+        )
+        # 盘中实时推送（21:30-04:00，每15分钟，夏令时EDT）
+        # 21:30-21:45（周一至周五）
+        self.scheduler.add_job(
+            self.us_realtime_task,
+            CronTrigger(hour=21, minute="30,45", day_of_week="mon-fri"),
+            id="us_realtime_21", name="美股盘中(21:30-45)", replace_existing=True
+        )
+        # 22:00-23:45（周一至周五）
+        self.scheduler.add_job(
+            self.us_realtime_task,
+            CronTrigger(hour="22,23", minute="0,15,30,45", day_of_week="mon-fri"),
+            id="us_realtime_2223", name="美股盘中(22-23点)", replace_existing=True
+        )
+        # 00:00-03:45（周二至周六）
+        self.scheduler.add_job(
+            self.us_realtime_task,
+            CronTrigger(hour="0,1,2,3", minute="0,15,30,45", day_of_week="tue-sat"),
+            id="us_realtime_0to3", name="美股盘中(0-3点)", replace_existing=True
+        )
+        # 04:00 收盘前最后一次
+        self.scheduler.add_job(
+            self.us_realtime_task,
+            CronTrigger(hour=4, minute=0, day_of_week="tue-sat"),
+            id="us_realtime_0400", name="美股盘中(04:00)", replace_existing=True
+        )
+        # 收盘大盘日报（04:30）
+        self.scheduler.add_job(
+            self.us_close_report_task,
+            CronTrigger(hour=4, minute=30, day_of_week="tue-sat"),
+            id="us_close_report", name="美股收盘日报", replace_existing=True
+        )
+        # 财报日提醒（每天 09:00）
+        self.scheduler.add_job(
+            self.us_earnings_task,
+            CronTrigger(hour=9, minute=0, day_of_week="mon-fri"),
+            id="us_earnings", name="美股财报日提醒", replace_existing=True
+        )
+
         self.scheduler.start()
         self.running = True
         logger.info("定时任务调度器已启动")
@@ -179,6 +230,71 @@ class TaskScheduler:
     def trigger_sector_analysis(self):
         """手动触发板块分析"""
         self.daily_sector_analysis_task()
+
+    # ─────────────────── 美股任务 ───────────────────
+
+    def us_daily_picks_task(self):
+        """美股每日热门推荐"""
+        logger.info("执行美股每日推荐任务")
+        try:
+            from modules.us_stock.us_picker import us_picker
+            result = us_picker.run_daily_picks()
+            msg = us_picker.format_report(result)
+            if msg:
+                notifier.us.send(msg)
+                logger.info("美股推荐已推送")
+        except Exception as e:
+            logger.error(f"美股推荐任务失败: {e}", exc_info=True)
+
+    def us_premarket_task(self):
+        """美股盘前异动预警"""
+        logger.info("执行美股盘前异动检查")
+        try:
+            from modules.us_stock.us_market import us_market
+            result = us_market.run_premarket_alert()
+            msg = us_market.format_premarket_alert(result)
+            if msg:
+                notifier.us.send(msg)
+                logger.info("美股盘前预警已推送")
+        except Exception as e:
+            logger.error(f"美股盘前任务失败: {e}", exc_info=True)
+
+    def us_realtime_task(self):
+        """美股盘中实时推送"""
+        logger.info("执行美股实时行情推送")
+        try:
+            from modules.us_stock.us_monitor import us_monitor
+            msg = us_monitor.run_realtime_push()
+            if msg:
+                notifier.us.send(msg)
+        except Exception as e:
+            logger.error(f"美股实时推送失败: {e}", exc_info=True)
+
+    def us_close_report_task(self):
+        """美股收盘大盘日报"""
+        logger.info("执行美股收盘日报")
+        try:
+            from modules.us_stock.us_market import us_market
+            result = us_market.run_daily_report()
+            msg = us_market.format_daily_report(result)
+            if msg:
+                notifier.us.send(msg)
+                logger.info("美股收盘日报已推送")
+        except Exception as e:
+            logger.error(f"美股收盘日报失败: {e}", exc_info=True)
+
+    def us_earnings_task(self):
+        """美股财报日提醒"""
+        logger.info("执行美股财报日检查")
+        try:
+            from modules.us_stock.us_market import us_market
+            result = us_market.run_earnings_check()
+            msg = us_market.format_earnings_alert(result)
+            if msg:
+                notifier.us.send(msg)
+                logger.info("财报日提醒已推送")
+        except Exception as e:
+            logger.error(f"美股财报检查失败: {e}", exc_info=True)
 
     def realtime_market_push_task(self):
         """实时行情推送任务"""

@@ -15,6 +15,9 @@ akshare>=1.18.0
 # AI引擎
 openai>=1.0.0
 
+# 美股数据
+yfinance>=0.2.0
+
 # 定时任务
 apscheduler==3.10.4
 

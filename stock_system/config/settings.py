@@ -119,6 +119,21 @@ class WebConfig:
 
 
 @dataclass
+class USStockConfig:
+    """美股模块配置"""
+    # 第二个 Telegram Bot（美股专用）
+    telegram_token: str = os.getenv("US_TELEGRAM_TOKEN", "")
+    telegram_chat_id: str = os.getenv("US_TELEGRAM_CHAT_ID", "")
+
+    # 推送时间（北京时间，按 EDT 夏令时）
+    picks_time: str = "20:00"       # 每日推荐（盘前1.5小时）
+    premarket_time: str = "20:30"   # 盘前异动预警
+    intraday_times: List[str] = field(default_factory=lambda: ["22:30", "00:30", "02:30"])  # 盘中
+    close_report_time: str = "04:30"  # 收盘日报
+    earnings_check_time: str = "09:00"  # 财报日提醒
+
+
+@dataclass
 class SystemConfig:
     """系统总配置"""
     ai: AIConfig = field(default_factory=AIConfig)
@@ -128,6 +143,7 @@ class SystemConfig:
     sector: SectorConfig = field(default_factory=SectorConfig)
     notify: NotifyConfig = field(default_factory=NotifyConfig)
     web: WebConfig = field(default_factory=WebConfig)
+    us_stock: USStockConfig = field(default_factory=USStockConfig)
 
     # 日志配置
     log_level: str = "INFO"
