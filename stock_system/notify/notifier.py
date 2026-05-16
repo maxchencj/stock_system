@@ -49,28 +49,46 @@ class TelegramNotifier:
         self.enabled = bool(self.token) and bool(self.chat_id)
         self.api_url = f"https://api.telegram.org/bot{self.token}/sendMessage"
 
-    def send(self, message: str, parse_mode: str = "Markdown") -> bool:
-        """发送消息"""
+    def send(self, message: str, parse_mode: str = "") -> bool:
+        """发送消息，超过 4096 字符自动分段"""
         if not self.enabled:
             logger.debug("Telegram未启用")
             return False
 
-        try:
-            data = {
-                "chat_id": self.chat_id,
-                "text": message,
-                "parse_mode": parse_mode
-            }
-            resp = requests.post(self.api_url, json=data, timeout=10)
-            if resp.status_code == 200:
-                logger.info("Telegram推送成功")
-                return True
+        chunks = self._split(message)
+        success = True
+        for chunk in chunks:
+            try:
+                data = {"chat_id": self.chat_id, "text": chunk}
+                if parse_mode:
+                    data["parse_mode"] = parse_mode
+                resp = requests.post(self.api_url, json=data, timeout=10)
+                if resp.status_code == 200:
+                    logger.info("Telegram推送成功")
+                else:
+                    logger.error(f"Telegram推送失败: {resp.text}")
+                    success = False
+            except Exception as e:
+                logger.error(f"Telegram推送异常: {e}")
+                success = False
+        return success
+
+    @staticmethod
+    def _split(text: str, limit: int = 4000) -> list:
+        """按段落切割长消息，每段不超过 limit 字符"""
+        if len(text) <= limit:
+            return [text]
+        chunks, current = [], ""
+        for line in text.split("\n"):
+            if len(current) + len(line) + 1 > limit:
+                if current:
+                    chunks.append(current.rstrip())
+                current = line + "\n"
             else:
-                logger.error(f"Telegram推送失败: {resp.text}")
-                return False
-        except Exception as e:
-            logger.error(f"Telegram推送异常: {e}")
-            return False
+                current += line + "\n"
+        if current.strip():
+            chunks.append(current.rstrip())
+        return chunks
 
 
 class USNotificationService:

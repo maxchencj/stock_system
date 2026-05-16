@@ -44,6 +44,15 @@ class TaskScheduler:
             replace_existing=True
         )
 
+        # 涨停复盘（交易日晚上7:00）
+        self.scheduler.add_job(
+            self.daily_zt_analysis_task,
+            CronTrigger(hour=19, minute=0, day_of_week="mon-fri"),
+            id="daily_zt_analysis",
+            name="涨停复盘",
+            replace_existing=True
+        )
+
         # 市场早报（仅周一到周五早上8:00）
         self.scheduler.add_job(
             self.morning_brief_task,
@@ -230,6 +239,21 @@ class TaskScheduler:
     def trigger_sector_analysis(self):
         """手动触发板块分析"""
         self.daily_sector_analysis_task()
+
+    def daily_zt_analysis_task(self):
+        """每日涨停复盘任务"""
+        logger.info("执行定时任务: 涨停复盘")
+        try:
+            from modules.zt.zt_analyzer import zt_analyzer
+            result = zt_analyzer.run_daily_analysis()
+            msg = zt_analyzer.format_report(result)
+            if msg:
+                notifier.send_all("🔴 今日涨停复盘", msg)
+                logger.info("涨停复盘已推送")
+            else:
+                logger.info("今日无涨停数据，跳过推送")
+        except Exception as e:
+            logger.error(f"涨停复盘任务失败: {e}", exc_info=True)
 
     # ─────────────────── 美股任务 ───────────────────
 
