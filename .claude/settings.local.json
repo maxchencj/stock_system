@@ -130,7 +130,8 @@
       "Bash(launchctl load *)",
       "Bash(curl -s \"https://api.telegram.org/bot8745664491:AAH27je7URes6UgNM04mak7557O6VFHLE-4/getUpdates\")",
       "Bash(python3 -c ' *)",
-      "Bash(curl *)"
+      "Bash(curl *)",
+      "Bash(pkill -f \"main.py\")"
     ]
   }
 }
