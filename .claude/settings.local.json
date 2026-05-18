@@ -131,7 +131,14 @@
       "Bash(curl -s \"https://api.telegram.org/bot8745664491:AAH27je7URes6UgNM04mak7557O6VFHLE-4/getUpdates\")",
       "Bash(python3 -c ' *)",
       "Bash(curl *)",
-      "Bash(pkill -f \"main.py\")"
+      "Bash(pkill -f \"main.py\")",
+      "Bash(git add *)",
+      "Bash(git commit -m ' *)",
+      "Bash(git push *)",
+      "Bash(git remote *)",
+      "Read(//Users/maxchen/.ssh/**)",
+      "Bash(ssh-keygen *)",
+      "Bash(ssh -T git@github.com)"
     ]
   }
 }
