@@ -136,6 +136,13 @@ class TaskScheduler:
             id="us_earnings", name="美股财报日提醒", replace_existing=True
         )
 
+        # 每日投研推送（每天 12:30，A股+美股各3只）
+        self.scheduler.add_job(
+            self.daily_research_task,
+            CronTrigger(hour=12, minute=30),
+            id="daily_research", name="每日投研推送", replace_existing=True
+        )
+
         self.scheduler.start()
         self.running = True
         logger.info("定时任务调度器已启动")
@@ -319,6 +326,20 @@ class TaskScheduler:
                 logger.info("财报日提醒已推送")
         except Exception as e:
             logger.error(f"美股财报检查失败: {e}", exc_info=True)
+
+    def daily_research_task(self):
+        """每日投研推送：A股10只 + 美股10只"""
+        logger.info("执行每日投研推送任务")
+        try:
+            from modules.research.research_engine import a_research
+            a_research.run_daily_push()
+        except Exception as e:
+            logger.error(f"A股投研推送失败: {e}", exc_info=True)
+        try:
+            from modules.research.research_engine import us_research
+            us_research.run_daily_push()
+        except Exception as e:
+            logger.error(f"美股投研推送失败: {e}", exc_info=True)
 
     def realtime_market_push_task(self):
         """实时行情推送任务"""
