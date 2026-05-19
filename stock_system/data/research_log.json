@@ -1,4 +1,8 @@
 {
   "a_share": [],
-  "us_stock": []
+  "us_stock": [
+    "PG",
+    "BLK",
+    "BA"
+  ]
 }

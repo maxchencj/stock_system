@@ -383,27 +383,18 @@ class TaskScheduler:
             logger.error(f"实时行情推送失败: {e}", exc_info=True)
 
     def _get_watchlist(self):
-        """获取关注股票列表"""
-        # 方法1: 从配置文件读取
-        watchlist_file = "data/watchlist.txt"
+        """从 watchlist.json 获取自选股列表"""
         try:
-            import os
-            if os.path.exists(watchlist_file):
-                codes = []
-                with open(watchlist_file, 'r') as f:
-                    for line in f:
-                        line = line.strip()
-                        if line and not line.startswith('#'):
-                            # 只取代码部分，去掉注释
-                            code = line.split('#')[0].strip()
-                            if code:
-                                codes.append(code)
-                if codes:
-                    return codes
+            import json
+            with open("data/watchlist.json") as f:
+                data = json.load(f)
+            codes = list(data.get("stocks", {}).keys())
+            if codes:
+                return codes
         except Exception as e:
-            logger.warning(f"读取关注列表失败: {e}")
+            logger.warning(f"读取watchlist.json失败: {e}")
 
-        # 方法2: 使用默认热门股票
+        # 兜底：使用默认热门股票
         return [
             "600519",  # 贵州茅台
             "601318",  # 中国平安

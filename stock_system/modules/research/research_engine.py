@@ -82,6 +82,25 @@ class ResearchLog:
         logger.info(f"{market} 推送日志已重置，重新循环")
 
 
+# A股兜底股票池（API失败时使用）
+A_SHARE_FALLBACK = [
+    ("600519", "贵州茅台"), ("000858", "五粮液"), ("002304", "洋河股份"),
+    ("601318", "中国平安"), ("600036", "招商银行"), ("000001", "平安银行"),
+    ("300750", "宁德时代"), ("002594", "比亚迪"), ("600276", "恒瑞医药"),
+    ("000333", "美的集团"), ("600887", "伊利股份"), ("000651", "格力电器"),
+    ("601899", "紫金矿业"), ("603993", "洛阳钼业"), ("600585", "海螺水泥"),
+    ("601088", "中国神华"), ("600028", "中国石化"), ("601857", "中国石油"),
+    ("600900", "长江电力"), ("601985", "中国核电"), ("600011", "华能国际"),
+    ("002415", "海康威视"), ("002230", "科大讯飞"), ("603501", "韦尔股份"),
+    ("601166", "兴业银行"), ("600000", "浦发银行"), ("601328", "交通银行"),
+    ("600309", "万华化学"), ("002714", "牧原股份"), ("300498", "温氏股份"),
+    ("601012", "隆基绿能"), ("600438", "通威股份"), ("002459", "晶澳科技"),
+    ("300308", "中际旭创"), ("300014", "亿纬锂能"), ("002460", "赣锋锂业"),
+    ("000568", "泸州老窖"), ("000596", "古井贡酒"), ("603369", "今世缘"),
+    ("600346", "恒力石化"), ("002352", "顺丰控股"), ("601111", "中国国航"),
+]
+
+
 class AShareResearch:
     """A股投研推送"""
 
@@ -89,22 +108,29 @@ class AShareResearch:
         self.log = ResearchLog()
 
     def _get_quality_pool(self):
-        """获取优质A股池（过滤ST、退市风险、亏损、微盘股）"""
-        logger.info("获取A股质量股票池...")
-        df = ak.stock_zh_a_spot_em()
-
-        # 过滤垃圾股和退市风险
-        df = df[~df["名称"].str.contains("ST", na=False)]
-        df = df[~df["名称"].str.contains("退", na=False)]
-        df = df[df["最新价"] > 0]  # 排除停牌
-        df = df[df["总市值"] > 5_000_000_000]  # 市值 > 50亿
-
-        # 过滤亏损股（PE为负或异常高）
-        pe_col = "市盈率-动态"
-        df = df[df[pe_col].notna() & (df[pe_col] > 0) & (df[pe_col] < 300)]
-
-        logger.info(f"优质A股池: {len(df)} 只")
-        return df[["代码", "名称", "总市值", "市盈率-动态", "市净率"]].reset_index(drop=True)
+        """获取优质A股池（新浪财经接口），失败时用兜底列表"""
+        import pandas as pd
+        logger.info("获取A股质量股票池（新浪财经）...")
+        try:
+            df = ak.stock_zh_a_spot()
+            # 新浪列名：symbol, open, close, high, low, volume, amount, outstanding_share, turnover_rate
+            df = df.rename(columns={"symbol": "代码", "name": "名称"}) if "name" in df.columns else df
+            # 过滤ST和退市风险
+            if "名称" in df.columns:
+                df = df[~df["名称"].str.contains("ST|退", na=False)]
+            logger.info(f"优质A股池: {len(df)} 只（新浪财经）")
+            # 统一输出格式
+            result = pd.DataFrame({
+                "代码": df.iloc[:, 0].astype(str).str[-6:],
+                "名称": df["名称"] if "名称" in df.columns else df.iloc[:, 1],
+                "总市值": 0, "市盈率-动态": 0, "市净率": 0
+            })
+            return result.reset_index(drop=True)
+        except Exception as e:
+            logger.warning(f"新浪接口失败，使用兜底列表: {e}")
+            rows = [{"代码": c, "名称": n, "总市值": 0, "市盈率-动态": 0, "市净率": 0}
+                    for c, n in A_SHARE_FALLBACK]
+            return pd.DataFrame(rows)
 
     def _pick_stocks(self, pool):
         """从股票池中选出未推送的股票"""
@@ -160,11 +186,7 @@ class AShareResearch:
     def run_daily_push(self):
         """执行每日A股投研推送"""
         logger.info("开始A股投研推送")
-        try:
-            pool = self._get_quality_pool()
-        except Exception as e:
-            logger.error(f"获取A股池失败: {e}", exc_info=True)
-            return
+        pool = self._get_quality_pool()
 
         selected = self._pick_stocks(pool)
         pushed_codes = []
