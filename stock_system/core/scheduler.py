@@ -2,6 +2,7 @@
 定时任务调度器 - APScheduler
 每日选股、板块分析、定时推送
 """
+import time
 from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.triggers.cron import CronTrigger
 from datetime import datetime
@@ -134,6 +135,13 @@ class TaskScheduler:
             self.us_earnings_task,
             CronTrigger(hour=9, minute=0, day_of_week="mon-fri"),
             id="us_earnings", name="美股财报日提醒", replace_existing=True
+        )
+
+        # 每日知识学习（每天 12:00，A股+美股各1个知识点）
+        self.scheduler.add_job(
+            self.daily_knowledge_task,
+            CronTrigger(hour=12, minute=0),
+            id="daily_knowledge", name="每日知识学习", replace_existing=True
         )
 
         # 每日投研推送（每天 12:30，A股+美股各3只）
@@ -326,6 +334,21 @@ class TaskScheduler:
                 logger.info("财报日提醒已推送")
         except Exception as e:
             logger.error(f"美股财报检查失败: {e}", exc_info=True)
+
+    def daily_knowledge_task(self):
+        """每日知识学习推送：A股1个 + 美股1个知识点"""
+        logger.info("执行每日知识学习推送任务")
+        try:
+            from modules.knowledge.knowledge_engine import a_knowledge
+            a_knowledge.run_daily_push()
+        except Exception as e:
+            logger.error(f"A股知识推送失败: {e}", exc_info=True)
+        time.sleep(3)
+        try:
+            from modules.knowledge.knowledge_engine import us_knowledge
+            us_knowledge.run_daily_push()
+        except Exception as e:
+            logger.error(f"美股知识推送失败: {e}", exc_info=True)
 
     def daily_research_task(self):
         """每日投研推送：A股10只 + 美股10只"""
