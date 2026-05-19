@@ -137,6 +137,20 @@ class TaskScheduler:
             id="us_earnings", name="美股财报日提醒", replace_existing=True
         )
 
+        # 财经新闻早报（每天 8:15）
+        self.scheduler.add_job(
+            self.morning_news_task,
+            CronTrigger(hour=8, minute=15),
+            id="morning_news", name="财经早报", replace_existing=True
+        )
+
+        # 财经新闻晚报（每天 20:15）
+        self.scheduler.add_job(
+            self.evening_news_task,
+            CronTrigger(hour=20, minute=15),
+            id="evening_news", name="财经晚报", replace_existing=True
+        )
+
         # 自选股每日跟踪（每天晚8:30，交易日推日报，周末推周报）
         self.scheduler.add_job(
             self.watchlist_track_task,
@@ -341,6 +355,36 @@ class TaskScheduler:
                 logger.info("财报日提醒已推送")
         except Exception as e:
             logger.error(f"美股财报检查失败: {e}", exc_info=True)
+
+    def morning_news_task(self):
+        """财经早报：A股Bot + mcDolphin Bot"""
+        logger.info("执行财经早报任务")
+        try:
+            from modules.news.news_engine import a_news
+            a_news.push_morning()
+        except Exception as e:
+            logger.error(f"A股早报失败: {e}", exc_info=True)
+        time.sleep(3)
+        try:
+            from modules.news.news_engine import us_news
+            us_news.push_morning()
+        except Exception as e:
+            logger.error(f"美股早报失败: {e}", exc_info=True)
+
+    def evening_news_task(self):
+        """财经晚报：A股Bot + mcDolphin Bot"""
+        logger.info("执行财经晚报任务")
+        try:
+            from modules.news.news_engine import a_news
+            a_news.push_evening()
+        except Exception as e:
+            logger.error(f"A股晚报失败: {e}", exc_info=True)
+        time.sleep(3)
+        try:
+            from modules.news.news_engine import us_news
+            us_news.push_evening()
+        except Exception as e:
+            logger.error(f"美股晚报失败: {e}", exc_info=True)
 
     def watchlist_track_task(self):
         """自选股跟踪：交易日推日报，周末推周报"""
