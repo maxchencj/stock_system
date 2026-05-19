@@ -11,6 +11,7 @@ numpy==1.26.2
 
 # 数据源
 akshare>=1.18.0
+baostock>=0.8.8
 
 # AI引擎
 openai>=1.0.0

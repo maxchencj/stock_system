@@ -137,6 +137,13 @@ class TaskScheduler:
             id="us_earnings", name="美股财报日提醒", replace_existing=True
         )
 
+        # 自选股每日跟踪（每天晚8:30，交易日推日报，周末推周报）
+        self.scheduler.add_job(
+            self.watchlist_track_task,
+            CronTrigger(hour=20, minute=30),
+            id="watchlist_track", name="自选股跟踪", replace_existing=True
+        )
+
         # 每日知识学习（每天 12:00，A股+美股各1个知识点）
         self.scheduler.add_job(
             self.daily_knowledge_task,
@@ -334,6 +341,21 @@ class TaskScheduler:
                 logger.info("财报日提醒已推送")
         except Exception as e:
             logger.error(f"美股财报检查失败: {e}", exc_info=True)
+
+    def watchlist_track_task(self):
+        """自选股跟踪：交易日推日报，周末推周报"""
+        logger.info("执行自选股跟踪任务")
+        try:
+            from modules.watchlist_tracker.tracker import a_tracker
+            a_tracker.run()
+        except Exception as e:
+            logger.error(f"A股自选股跟踪失败: {e}", exc_info=True)
+        time.sleep(3)
+        try:
+            from modules.watchlist_tracker.tracker import us_tracker
+            us_tracker.run()
+        except Exception as e:
+            logger.error(f"美股自选股跟踪失败: {e}", exc_info=True)
 
     def daily_knowledge_task(self):
         """每日知识学习推送：A股1个 + 美股1个知识点"""
