@@ -1,7 +1,7 @@
 #!/bin/bash
 # 手动触发任务脚本
 
-cd "$(dirname "$0")"
+cd "$(dirname "$0")/.."
 
 echo "手动触发任务菜单"
 echo "=================="
@@ -22,7 +22,7 @@ case $choice in
         ;;
     3)
         echo "正在测试推送..."
-        python3 test_pushplus_direct.py
+        python3 tests/test_pushplus_direct.py
         ;;
     *)
         echo "无效选择"
