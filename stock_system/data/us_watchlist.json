@@ -1,6 +1,7 @@
 {
   "stocks": {
     "SATS": {"name": "EchoStar Corporation", "added_time": "2026-05-16 00:00:00"},
-    "RDW": {"name": "Redwire Corporation", "added_time": "2026-05-16 00:00:00"}
+    "RDW": {"name": "Redwire Corporation", "added_time": "2026-05-16 00:00:00"},
+    "RKLB": {"name": "Rocket Lab USA", "added_time": "2026-05-20 00:00:00"}
   }
 }
