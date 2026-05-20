@@ -138,7 +138,14 @@
       "Bash(git remote *)",
       "Read(//Users/maxchen/.ssh/**)",
       "Bash(ssh-keygen *)",
-      "Bash(ssh -T git@github.com)"
+      "Bash(ssh -T git@github.com)",
+      "Bash(/opt/homebrew/bin/pip3.9 install *)",
+      "Bash(kill 45606)",
+      "Bash(echo \"新进程 PID: $!\")",
+      "Bash(git commit *)",
+      "Bash(/opt/homebrew/bin/pip3.9 show *)",
+      "Bash($PYTHON *)",
+      "Bash(kill 73457 78344)"
     ]
   }
 }
