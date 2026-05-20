@@ -27,29 +27,34 @@ def _save_log(data: dict):
 
 
 def _fetch_upcoming_ipos() -> list:
-    """获取近期新股申购信息（含明日 + 今日申购）"""
+    """获取近期新股申购信息（含今日 + 明日申购）"""
     try:
         import akshare as ak
-        df = ak.stock_zh_a_new()
+        df = ak.stock_ipo_ths()
         if df is None or df.empty:
             return []
 
-        tomorrow = (datetime.now() + timedelta(days=1)).strftime("%Y-%m-%d")
-        today = datetime.now().strftime("%Y-%m-%d")
-        target_dates = {today, tomorrow}
+        # 申购日期格式为 "05-20 周三" 或 "2026-05-18"，统一提取 MM-DD 匹配
+        tomorrow = (datetime.now() + timedelta(days=1)).strftime("%m-%d")
+        today = datetime.now().strftime("%m-%d")
+        target_mmdd = {today, tomorrow}
 
         results = []
         for _, row in df.iterrows():
-            sub_date = str(row.get("申购日期", row.get("上市日期", "")))
-            matched = any(d in sub_date for d in target_dates)
-            if not matched:
+            sub_date = str(row.get("申购日期", ""))
+            if not any(d in sub_date for d in target_mmdd):
+                continue
+            # 过滤掉已有中签率（已过申购期）的记录
+            lottory = str(row.get("中签率（%）", ""))
+            if lottory and lottory not in ("-", "", "nan"):
                 continue
             results.append({
                 "name": str(row.get("股票简称", "")),
                 "code": str(row.get("股票代码", "")),
                 "issue_price": str(row.get("发行价格", "未知")),
                 "pe_ratio": str(row.get("发行市盈率", "未知")),
-                "raise_amount": str(row.get("预计募资", row.get("募资总额", "未知"))),
+                "industry_pe": str(row.get("行业市盈率", "未知")),
+                "max_apply": str(row.get("申购上限（万股）", "未知")),
                 "sub_date": sub_date,
             })
         return results
@@ -71,8 +76,8 @@ def _ai_ipo_analysis(ipo: dict) -> str:
 股票名称: {ipo['name']}
 股票代码: {ipo['code']}
 发行价格: {ipo['issue_price']} 元
-发行市盈率: {ipo['pe_ratio']}
-预计募资: {ipo['raise_amount']}
+发行市盈率: {ipo['pe_ratio']}（行业市盈率: {ipo.get('industry_pe', '未知')}）
+申购上限: {ipo.get('max_apply', '未知')} 万股
 申购日期: {ipo['sub_date']}
 
 输出格式（总计250字以内）：
@@ -115,7 +120,8 @@ class IPOReminder:
                 f"━━━━━━━━━━━━━━━━\n"
                 f"📋 {ipo['name']}（{ipo['code']}）\n"
                 f"💰 发行价：{ipo['issue_price']} 元\n"
-                f"📊 发行市盈率：{ipo['pe_ratio']}\n"
+                f"📊 发行市盈率：{ipo['pe_ratio']}（行业：{ipo.get('industry_pe','未知')}）\n"
+                f"📈 申购上限：{ipo.get('max_apply','未知')} 万股\n"
                 f"📅 申购日期：{ipo['sub_date']}\n\n"
                 f"{analysis}"
             )
