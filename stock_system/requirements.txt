@@ -25,6 +25,7 @@ apscheduler==3.10.4
 
 # 通知推送
 requests==2.31.0
+python-telegram-bot==20.7
 
 # 可选：Redis缓存
 # redis==5.0.1

@@ -172,6 +172,20 @@ class TaskScheduler:
             id="daily_research", name="每日投研推送", replace_existing=True
         )
 
+        # 系统心跳监控（每天 7:00 推送系统状态）
+        self.scheduler.add_job(
+            self.heartbeat_task,
+            CronTrigger(hour=7, minute=0),
+            id="heartbeat", name="系统心跳监控", replace_existing=True
+        )
+
+        # 打新提醒（每天 18:00 检查次日申购）
+        self.scheduler.add_job(
+            self.ipo_reminder_task,
+            CronTrigger(hour=18, minute=0),
+            id="ipo_reminder", name="打新提醒", replace_existing=True
+        )
+
         self.scheduler.start()
         self.running = True
         logger.info("定时任务调度器已启动")
@@ -429,6 +443,65 @@ class TaskScheduler:
             us_research.run_daily_push()
         except Exception as e:
             logger.error(f"美股投研推送失败: {e}", exc_info=True)
+
+    def heartbeat_task(self):
+        """系统心跳监控：每天 7:00 推送系统状态"""
+        logger.info("执行系统心跳监控")
+        try:
+            import json
+            from pathlib import Path
+            from notify.notifier import notifier
+
+            jobs = self.scheduler.get_jobs()
+
+            # 自选股数量
+            wl_file = Path(__file__).parent.parent / "data" / "watchlist.json"
+            us_wl_file = Path(__file__).parent.parent / "data" / "us_watchlist.json"
+            try:
+                with open(wl_file) as f:
+                    a_count = len(json.load(f).get("stocks", {}))
+            except Exception:
+                a_count = 0
+            try:
+                with open(us_wl_file) as f:
+                    us_count = len(json.load(f).get("stocks", {}))
+            except Exception:
+                us_count = 0
+
+            # 今日 API 用量
+            usage_file = Path(__file__).parent.parent / "data" / "api_usage.json"
+            today_tokens = 0
+            today_calls = 0
+            if usage_file.exists():
+                with open(usage_file) as f:
+                    usage = json.load(f)
+                today = datetime.now().strftime("%Y-%m-%d")
+                day_data = usage.get("daily", {}).get(today, {})
+                today_tokens = day_data.get("total_tokens", 0)
+                today_calls = day_data.get("calls", 0)
+
+            msg = (
+                f"💓 系统心跳 — {datetime.now().strftime('%Y-%m-%d %H:%M')}\n"
+                f"━━━━━━━━━━━━━━━━\n"
+                f"🟢 运行状态：正常\n"
+                f"📋 定时任务：{len(jobs)} 个\n"
+                f"🇨🇳 A股自选股：{a_count} 只\n"
+                f"🇺🇸 美股自选股：{us_count} 只\n"
+                f"🤖 今日AI调用：{today_calls} 次 / {today_tokens:,} tokens"
+            )
+            notifier.telegram.send(msg)
+            logger.info("系统心跳已推送")
+        except Exception as e:
+            logger.error(f"系统心跳任务失败: {e}", exc_info=True)
+
+    def ipo_reminder_task(self):
+        """打新提醒：每天 18:00 检查次日新股申购"""
+        logger.info("执行打新提醒任务")
+        try:
+            from modules.ipo.ipo_reminder import ipo_reminder
+            ipo_reminder.run_daily_check()
+        except Exception as e:
+            logger.error(f"打新提醒任务失败: {e}", exc_info=True)
 
     def realtime_market_push_task(self):
         """实时行情推送任务"""

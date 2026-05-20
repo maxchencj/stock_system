@@ -4,11 +4,42 @@ AI 分析引擎 - 使用 DeepSeek API (OpenAI 兼容)
 """
 import json
 import os
+from datetime import datetime
+from pathlib import Path
 from typing import Dict, List, Optional
 from openai import OpenAI
 
 from config.settings import config
 from utils.logger import logger
+
+_USAGE_FILE = Path(__file__).parent.parent / "data" / "api_usage.json"
+
+
+def _record_tokens(prompt_tokens: int, completion_tokens: int):
+    """记录 API token 用量到 data/api_usage.json"""
+    try:
+        _USAGE_FILE.parent.mkdir(parents=True, exist_ok=True)
+        try:
+            with open(_USAGE_FILE) as f:
+                usage = json.load(f)
+        except Exception:
+            usage = {"daily": {}, "total": {"calls": 0, "total_tokens": 0}}
+
+        today = datetime.now().strftime("%Y-%m-%d")
+        day = usage.setdefault("daily", {}).setdefault(today, {"calls": 0, "prompt_tokens": 0, "completion_tokens": 0, "total_tokens": 0})
+        day["calls"] += 1
+        day["prompt_tokens"] += prompt_tokens
+        day["completion_tokens"] += completion_tokens
+        day["total_tokens"] += prompt_tokens + completion_tokens
+
+        total = usage.setdefault("total", {"calls": 0, "total_tokens": 0})
+        total["calls"] += 1
+        total["total_tokens"] += prompt_tokens + completion_tokens
+
+        with open(_USAGE_FILE, "w") as f:
+            json.dump(usage, f, ensure_ascii=False, indent=2)
+    except Exception as e:
+        logger.warning(f"记录API用量失败: {e}")
 
 
 class AIAnalysisEngine:
@@ -36,6 +67,10 @@ class AIAnalysisEngine:
                     {"role": "user", "content": user_prompt}
                 ]
             )
+            # 记录 token 用量
+            if response.usage:
+                _record_tokens(response.usage.prompt_tokens, response.usage.completion_tokens)
+
             text = response.choices[0].message.content.strip()
             if as_json:
                 # 提取JSON内容

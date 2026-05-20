@@ -26,6 +26,13 @@ class StockSystem:
         logger.info("🚀 股票智能分析系统启动中...")
         logger.info("=" * 60)
 
+        # 启动 Telegram Bot（双向交互）
+        try:
+            from modules.bot.telegram_bot import start_bot
+            start_bot()
+        except Exception as e:
+            logger.warning(f"Telegram Bot 启动失败（系统继续运行）: {e}")
+
         # 启动定时任务调度器
         if enable_scheduler:
             scheduler.start()
