@@ -145,7 +145,8 @@
       "Bash(git commit *)",
       "Bash(/opt/homebrew/bin/pip3.9 show *)",
       "Bash($PYTHON *)",
-      "Bash(kill 73457 78344)"
+      "Bash(kill 73457 78344)",
+      "Bash(xargs ls -la)"
     ]
   }
 }
