@@ -103,6 +103,57 @@ A_SHARE_FALLBACK = [
 ]
 
 
+def _get_baostock_financials(code: str) -> dict:
+    """用 baostock 获取最新季度财务指标（ROE/利润率/成长性/负债率）"""
+    try:
+        import baostock as bs
+        from datetime import datetime
+        lg = bs.login()
+
+        bs_code = f"sh.{code}" if code.startswith("6") else f"sz.{code}"
+        year = datetime.now().year
+        quarter = (datetime.now().month - 1) // 3 or 4
+        if quarter == 4 and datetime.now().month <= 3:
+            year -= 1
+
+        result = {}
+
+        # 利润指标
+        rs = bs.query_profit_data(code=bs_code, year=year, quarter=quarter)
+        if rs.error_code == "0":
+            row = rs.get_row_data()
+            if row:
+                d = dict(zip(rs.fields, row))
+                result["roe"] = float(d.get("roeAvg", 0) or 0)
+                result["net_margin"] = float(d.get("npMargin", 0) or 0)
+                result["gross_margin"] = float(d.get("gpMargin", 0) or 0)
+                result["net_profit"] = float(d.get("netProfit", 0) or 0)
+
+        # 成长指标
+        rs2 = bs.query_growth_data(code=bs_code, year=year, quarter=quarter)
+        if rs2.error_code == "0":
+            row2 = rs2.get_row_data()
+            if row2:
+                d2 = dict(zip(rs2.fields, row2))
+                result["yoy_net_profit"] = float(d2.get("YOYNI", 0) or 0)
+                result["yoy_revenue"] = float(d2.get("YOYEquity", 0) or 0)
+
+        # 资产负债指标
+        rs3 = bs.query_balance_data(code=bs_code, year=year, quarter=quarter)
+        if rs3.error_code == "0":
+            row3 = rs3.get_row_data()
+            if row3:
+                d3 = dict(zip(rs3.fields, row3))
+                result["debt_ratio"] = float(d3.get("liabilityToAsset", 0) or 0)
+                result["current_ratio"] = float(d3.get("currentRatio", 0) or 0)
+
+        bs.logout()
+        return result
+    except Exception as e:
+        logger.warning(f"baostock财务数据获取失败({code}): {e}")
+        return {}
+
+
 class AShareResearch:
     """A股投研推送"""
 
@@ -151,11 +202,22 @@ class AShareResearch:
         pe = row.get("市盈率-动态", 0)
         pb = row.get("市净率", 0)
 
+        # 获取 baostock 真实财务数据
+        fin = _get_baostock_financials(str(row["代码"]))
+        fin_str = ""
+        if fin:
+            fin_str = (
+                f"\n真实财务数据（最新季报）：\n"
+                f"  ROE: {fin.get('roe', 0)*100:.1f}%  净利率: {fin.get('net_margin', 0)*100:.1f}%  毛利率: {fin.get('gross_margin', 0)*100:.1f}%\n"
+                f"  净利润同比增速: {fin.get('yoy_net_profit', 0)*100:.1f}%\n"
+                f"  资产负债率: {fin.get('debt_ratio', 0)*100:.1f}%  流动比率: {fin.get('current_ratio', 0):.2f}"
+            )
+
         system_prompt = "你是专业的A股投研分析师，擅长深度分析上市公司的商业价值和投资逻辑。"
         user_prompt = f"""请对以下A股公司进行深度投研分析：
 
 股票代码：{row['代码']}  公司名称：{row['名称']}
-总市值：{cap_str}  市盈率：{pe:.1f}x  市净率：{pb:.1f}x
+总市值：{cap_str}  市盈率：{pe:.1f}x  市净率：{pb:.1f}x{fin_str}
 
 请按以下格式输出（专业深入，600字以内）：
 

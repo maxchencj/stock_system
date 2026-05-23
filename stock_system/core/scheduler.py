@@ -216,6 +216,22 @@ class TaskScheduler:
             id="ipo_reminder", name="打新提醒", replace_existing=True
         )
 
+        # ── Phase 3：数据增强 ──────────────────────────────
+
+        # 大宗交易监控（交易日 19:30）
+        self.scheduler.add_job(
+            self.block_trade_task,
+            CronTrigger(hour=19, minute=30, day_of_week="mon-fri"),
+            id="block_trade", name="大宗交易监控", replace_existing=True
+        )
+
+        # 行业估值面板（每周六 10:00）
+        self.scheduler.add_job(
+            self.industry_panel_task,
+            CronTrigger(hour=10, minute=0, day_of_week="sat"),
+            id="industry_panel", name="行业估值面板", replace_existing=True
+        )
+
         self.scheduler.start()
         self.running = True
         logger.info("定时任务调度器已启动")
@@ -570,6 +586,26 @@ class TaskScheduler:
             macro_calendar.run_weekly_push()
         except Exception as e:
             logger.error(f"宏观经济日历失败: {e}", exc_info=True)
+
+    # ── Phase 3 任务 ──────────────────────────────────
+
+    def block_trade_task(self):
+        """大宗交易监控：交易日 19:30"""
+        logger.info("执行大宗交易监控")
+        try:
+            from modules.scanner.block_trade import block_trade_monitor
+            block_trade_monitor.run_daily_push()
+        except Exception as e:
+            logger.error(f"大宗交易监控失败: {e}", exc_info=True)
+
+    def industry_panel_task(self):
+        """行业估值面板：每周六 10:00"""
+        logger.info("执行行业估值面板")
+        try:
+            from modules.sector.industry_panel import industry_panel
+            industry_panel.run_weekly_push()
+        except Exception as e:
+            logger.error(f"行业估值面板失败: {e}", exc_info=True)
 
     def realtime_market_push_task(self):
         """实时行情推送任务"""

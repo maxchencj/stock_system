@@ -38,23 +38,55 @@ def _clean_html(text: str) -> str:
     return re.sub(r'<[^>]+>', '', text).strip()
 
 
+# 无关内容过滤关键词
+_NOISE_KEYWORDS = [
+    "广告", "招聘", "培训", "理财产品", "开户", "佣金", "手续费",
+    "配资", "炒股软件", "股票推荐群", "微信扫码", "公众号",
+    "点击查看", "更多详情", "阅读全文", "查看更多",
+    "娱乐", "明星", "综艺", "体育", "足球", "篮球",
+]
+
+# 高价值财经关键词（至少含其一才保留）
+_FINANCE_KEYWORDS = [
+    "股市", "A股", "港股", "美股", "纳斯达克", "上证", "深证", "创业板",
+    "央行", "美联储", "政策", "货币", "利率", "通胀", "CPI", "PPI", "GDP",
+    "财报", "业绩", "净利润", "营收", "分红", "回购", "增持", "减持",
+    "板块", "行业", "资金", "北向", "外资", "融资", "并购",
+    "IPO", "新股", "科技", "新能源", "半导体", "医药", "消费",
+    "原油", "黄金", "大宗", "汇率", "人民币", "美元",
+]
+
+
+def _is_quality_news(title: str, intro: str = "") -> bool:
+    """过滤无关新闻，保留高价值财经内容"""
+    text = title + intro
+    # 含噪声词直接过滤
+    if any(kw in text for kw in _NOISE_KEYWORDS):
+        return False
+    # 标题太短过滤
+    if len(title) < 8:
+        return False
+    # 含财经关键词保留，否则也保留（不过于激进）
+    return True
+
+
 # ─────────────────── 新闻抓取 ───────────────────
 
 def _fetch_cn_news(max_items: int = 20) -> List[str]:
-    """抓取中文财经新闻（新浪财经双源）"""
+    """抓取中文财经新闻（新浪财经双源 + 质量过滤）"""
     items = []
 
     # 源1：新浪财经 A股新闻 JSON API
     try:
         r = requests.get(
-            "https://feed.mix.sina.com.cn/api/roll/get?pageid=153&lid=2516&k=&num=20&page=1",
+            "https://feed.mix.sina.com.cn/api/roll/get?pageid=153&lid=2516&k=&num=30&page=1",
             headers=_HEADERS, timeout=10
         )
         data = r.json().get("result", {}).get("data", [])
         for item in data:
             title = item.get("title", "").strip()
-            intro = _clean_html(item.get("intro", ""))[:100]
-            if title:
+            intro = _clean_html(item.get("intro", ""))[:120]
+            if title and _is_quality_news(title, intro):
                 items.append(f"{title}{'：' + intro if intro else ''}")
     except Exception as e:
         logger.warning(f"新浪A股新闻抓取失败: {e}")
@@ -64,14 +96,15 @@ def _fetch_cn_news(max_items: int = 20) -> List[str]:
         try:
             import feedparser
             feed = feedparser.parse("http://rss.sina.com.cn/news/china/focus15.xml")
-            for entry in feed.entries[:10]:
+            existing_titles = {i.split("：")[0] for i in items}
+            for entry in feed.entries[:15]:
                 title = entry.get("title", "").strip()
-                if title and title not in [i.split("：")[0] for i in items]:
+                if title and title not in existing_titles and _is_quality_news(title):
                     items.append(title)
         except Exception as e:
             logger.warning(f"新浪RSS抓取失败: {e}")
 
-    logger.info(f"获取中文财经新闻 {len(items)} 条")
+    logger.info(f"获取中文财经新闻 {len(items)} 条（已过滤噪声）")
     return items[:max_items]
 
 
