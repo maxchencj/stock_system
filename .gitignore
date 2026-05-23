@@ -42,3 +42,4 @@ logs/
 stock_system/data/api_usage.json
 stock_system/data/ipo_log.json
 stock_system/data/knowledge_log.json
+stock_system/data/portfolio.json

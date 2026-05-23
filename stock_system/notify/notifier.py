@@ -1,10 +1,62 @@
 """
 通知层 - PushPlus微信 + Telegram Bot
 """
+import time
+import sqlite3
 import requests
+from pathlib import Path
+from datetime import datetime
 from typing import Dict, Optional
 from config.settings import config
 from utils.logger import logger
+
+# ── 推送历史 SQLite ──────────────────────────────────────
+_DB_PATH = Path(__file__).parent.parent / "data" / "push_history.db"
+
+
+def _init_db():
+    con = sqlite3.connect(_DB_PATH)
+    con.execute("""
+        CREATE TABLE IF NOT EXISTS push_history (
+            id        INTEGER PRIMARY KEY AUTOINCREMENT,
+            ts        TEXT    NOT NULL,
+            bot       TEXT    NOT NULL,
+            preview   TEXT    NOT NULL,
+            success   INTEGER NOT NULL DEFAULT 1
+        )
+    """)
+    con.commit()
+    con.close()
+
+
+def _log_push(bot: str, message: str, success: bool):
+    try:
+        _init_db()
+        preview = message.replace("\n", " ")[:100]
+        con = sqlite3.connect(_DB_PATH)
+        con.execute(
+            "INSERT INTO push_history(ts, bot, preview, success) VALUES (?,?,?,?)",
+            (datetime.now().strftime("%Y-%m-%d %H:%M:%S"), bot, preview, 1 if success else 0)
+        )
+        con.commit()
+        con.close()
+    except Exception as e:
+        logger.warning(f"记录推送历史失败: {e}")
+
+
+def get_push_history(limit: int = 10) -> list:
+    """返回最近 limit 条推送记录"""
+    try:
+        _init_db()
+        con = sqlite3.connect(_DB_PATH)
+        rows = con.execute(
+            "SELECT ts, bot, preview, success FROM push_history ORDER BY id DESC LIMIT ?",
+            (limit,)
+        ).fetchall()
+        con.close()
+        return [{"ts": r[0], "bot": r[1], "preview": r[2], "success": bool(r[3])} for r in rows]
+    except Exception:
+        return []
 
 
 class PushPlusNotifier:
@@ -50,28 +102,38 @@ class TelegramNotifier:
         self.api_url = f"https://api.telegram.org/bot{self.token}/sendMessage"
 
     def send(self, message: str, parse_mode: str = "") -> bool:
-        """发送消息，超过 4096 字符自动分段"""
+        """发送消息，超过 4096 字符自动分段，失败最多重试 2 次（间隔 30s）"""
         if not self.enabled:
             logger.debug("Telegram未启用")
             return False
 
         chunks = self._split(message)
-        success = True
+        all_ok = True
         for chunk in chunks:
+            ok = self._send_with_retry(chunk, parse_mode)
+            all_ok = all_ok and ok
+
+        bot_name = "A股Bot" if self.token == config.notify.telegram_token else "US Bot"
+        _log_push(bot_name, message, all_ok)
+        return all_ok
+
+    def _send_with_retry(self, text: str, parse_mode: str = "", max_retry: int = 2) -> bool:
+        data = {"chat_id": self.chat_id, "text": text}
+        if parse_mode:
+            data["parse_mode"] = parse_mode
+        for attempt in range(max_retry + 1):
             try:
-                data = {"chat_id": self.chat_id, "text": chunk}
-                if parse_mode:
-                    data["parse_mode"] = parse_mode
                 resp = requests.post(self.api_url, json=data, timeout=10)
                 if resp.status_code == 200:
                     logger.info("Telegram推送成功")
-                else:
-                    logger.error(f"Telegram推送失败: {resp.text}")
-                    success = False
+                    return True
+                logger.warning(f"Telegram推送失败(第{attempt+1}次): {resp.text[:100]}")
             except Exception as e:
-                logger.error(f"Telegram推送异常: {e}")
-                success = False
-        return success
+                logger.warning(f"Telegram推送异常(第{attempt+1}次): {e}")
+            if attempt < max_retry:
+                time.sleep(30)
+        logger.error("Telegram推送重试耗尽，放弃")
+        return False
 
     @staticmethod
     def _split(text: str, limit: int = 4000) -> list:

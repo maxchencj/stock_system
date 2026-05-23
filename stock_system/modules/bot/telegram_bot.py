@@ -81,11 +81,18 @@ async def cmd_start(update: Update, context: ContextTypes.DEFAULT_TYPE):
         return
     await update.message.reply_text(
         "👋 股票助手已就绪\n\n"
-        "/watchlist — 查看自选股\n"
+        "📋 自选股\n"
+        "/watchlist(/wl) — 查看自选股\n"
         "/add <代码> — 添加自选股\n"
-        "/remove <代码> — 删除自选股\n"
+        "/remove <代码> — 删除自选股\n\n"
+        "📚 研报 & 简报\n"
         "/research <代码> — 生成研报\n"
-        "/brief — 立即推送今日简报\n"
+        "/brief — 立即推送今日简报\n\n"
+        "📂 模拟持仓\n"
+        "/portfolio(/pf) — 查看模拟持仓\n"
+        "/close <代码> — 平仓\n\n"
+        "🔧 系统\n"
+        "/history(/hist) — 最近推送记录\n"
         "/status — 系统状态\n"
         "/help — 帮助"
     )
@@ -252,6 +259,69 @@ async def cmd_brief(update: Update, context: ContextTypes.DEFAULT_TYPE):
     threading.Thread(target=_do_brief, daemon=True).start()
 
 
+async def cmd_portfolio(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if not _auth(update):
+        return
+    await update.message.reply_text("📂 查询持仓中...")
+
+    def _do():
+        try:
+            from modules.portfolio.portfolio_tracker import portfolio_tracker
+            from notify.notifier import notifier
+            text = portfolio_tracker.get_positions_text()
+            notifier.telegram.send(text)
+        except Exception as e:
+            logger.error(f"Bot portfolio查询失败: {e}", exc_info=True)
+
+    threading.Thread(target=_do, daemon=True).start()
+
+
+async def cmd_close(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if not _auth(update):
+        return
+    if not context.args:
+        await update.message.reply_text("用法：/close <A股代码>\n示例：/close 600519")
+        return
+    code = context.args[0].strip()
+
+    def _do():
+        try:
+            from modules.portfolio.portfolio_tracker import portfolio_tracker
+            from notify.notifier import notifier
+            record = portfolio_tracker.close_position(code)
+            if record:
+                icon = "🔴" if record["pnl_pct"] >= 0 else "🟢"
+                notifier.telegram.send(
+                    f"✅ 模拟平仓\n{record['name']}({code})\n"
+                    f"建仓价: {record['buy_price']:.2f}  平仓价: {record['sell_price']:.2f}\n"
+                    f"{icon} 盈亏: {record['pnl_pct']:+.2f}%"
+                )
+            else:
+                notifier.telegram.send(f"❌ 未找到持仓 {code}，请检查代码")
+        except Exception as e:
+            logger.error(f"Bot close失败: {e}", exc_info=True)
+
+    threading.Thread(target=_do, daemon=True).start()
+
+
+async def cmd_history(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if not _auth(update):
+        return
+    try:
+        from notify.notifier import get_push_history
+        records = get_push_history(10)
+        if not records:
+            await update.message.reply_text("暂无推送记录")
+            return
+        lines = ["📜 最近推送记录（最新10条）\n"]
+        for r in records:
+            status = "✅" if r["success"] else "❌"
+            lines.append(f"{status} [{r['ts'][5:16]}] {r['bot']}\n   {r['preview'][:60]}")
+        await update.message.reply_text("\n".join(lines))
+    except Exception as e:
+        await update.message.reply_text(f"❌ 查询失败: {e}")
+
+
 async def cmd_status(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if not _auth(update):
         return
@@ -304,6 +374,11 @@ def start_bot():
             app.add_handler(CommandHandler("remove", cmd_remove))
             app.add_handler(CommandHandler("research", cmd_research))
             app.add_handler(CommandHandler("brief", cmd_brief))
+            app.add_handler(CommandHandler("portfolio", cmd_portfolio))
+            app.add_handler(CommandHandler("pf", cmd_portfolio))
+            app.add_handler(CommandHandler("close", cmd_close))
+            app.add_handler(CommandHandler("history", cmd_history))
+            app.add_handler(CommandHandler("hist", cmd_history))
             app.add_handler(CommandHandler("status", cmd_status))
 
             logger.info("Telegram Bot 已启动，等待指令...")

@@ -268,6 +268,14 @@ class AShareResearch:
                 notifier.telegram.send(msg)
                 pushed_codes.append(row["代码"])
                 logger.info(f"已推送A股研报: {row['名称']}({row['代码']})")
+                # 自动模拟建仓
+                try:
+                    from modules.portfolio.portfolio_tracker import portfolio_tracker, _get_price
+                    cur_price = _get_price(str(row["代码"]))
+                    if cur_price:
+                        portfolio_tracker.add_position(str(row["代码"]), str(row["名称"]), cur_price)
+                except Exception as pe:
+                    logger.warning(f"模拟建仓失败({row['代码']}): {pe}")
                 time.sleep(3)
             except Exception as e:
                 logger.error(f"推送{row['名称']}失败: {e}")
