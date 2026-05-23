@@ -5,7 +5,6 @@
 import time
 from datetime import datetime
 from typing import List, Dict
-from concurrent.futures import ThreadPoolExecutor, as_completed
 
 import pandas as pd
 
@@ -146,18 +145,15 @@ class QuantScreener:
         logger.info(f"开始多因子量化选股，股票池 {len(QUANT_UNIVERSE)} 只")
         universe = QUANT_UNIVERSE
 
-        # 并发获取因子（最多8线程，避免baostock并发问题）
+        # baostock 单连接非线程安全，串行计算因子
         raw_factors = []
-        with ThreadPoolExecutor(max_workers=4) as executor:
-            futures = {executor.submit(score_stock, code): code for code in universe}
-            for future in as_completed(futures):
-                code = futures[future]
-                try:
-                    result = future.result(timeout=30)
-                    if result:
-                        raw_factors.append(result)
-                except Exception as e:
-                    logger.debug(f"因子计算失败({code}): {e}")
+        for code in universe:
+            try:
+                result = score_stock(code)
+                if result:
+                    raw_factors.append(result)
+            except Exception as e:
+                logger.debug(f"因子计算失败({code}): {e}")
 
         if len(raw_factors) < 10:
             logger.warning(f"有效因子数据不足({len(raw_factors)}只)，跳过推送")

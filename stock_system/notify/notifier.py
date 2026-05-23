@@ -131,7 +131,7 @@ class TelegramNotifier:
             except Exception as e:
                 logger.warning(f"Telegram推送异常(第{attempt+1}次): {e}")
             if attempt < max_retry:
-                time.sleep(30)
+                time.sleep(5)  # 30s 会阻塞 APScheduler 线程池，改为 5s
         logger.error("Telegram推送重试耗尽，放弃")
         return False
 

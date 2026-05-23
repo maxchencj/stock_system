@@ -146,7 +146,16 @@
       "Bash(/opt/homebrew/bin/pip3.9 show *)",
       "Bash($PYTHON *)",
       "Bash(kill 73457 78344)",
-      "Bash(xargs ls -la)"
+      "Bash(xargs ls -la)",
+      "Bash(/opt/homebrew/Cellar/python@3.9/3.9.16/Frameworks/Python.framework/Versions/3.9/Resources/Python.app/Contents/MacOS/Python -m py_compile modules/sector/industry_panel.py)",
+      "Bash(/opt/homebrew/Cellar/python@3.9/3.9.16/Frameworks/Python.framework/Versions/3.9/Resources/Python.app/Contents/MacOS/Python -m py_compile modules/news/news_engine.py)",
+      "Bash(pkill -f \"main.py --no-web\")",
+      "Bash(/opt/homebrew/Cellar/python@3.9/3.9.16/Frameworks/Python.framework/Versions/3.9/Resources/Python.app/Contents/MacOS/Python main.py --no-web)",
+      "Bash(python3 -c \"import pandas as pd; print\\(pd.__version__\\)\")",
+      "Bash(/opt/homebrew/Cellar/python@3.9/3.9.16/Frameworks/Python.framework/Versions/3.9/Resources/Python.app/Contents/MacOS/Python -m py_compile modules/quant/factors.py)",
+      "Bash(/opt/homebrew/Cellar/python@3.9/3.9.16/Frameworks/Python.framework/Versions/3.9/Resources/Python.app/Contents/MacOS/Python -m py_compile modules/quant/screener.py)",
+      "Bash(/opt/homebrew/Cellar/python@3.9/3.9.16/Frameworks/Python.framework/Versions/3.9/Resources/Python.app/Contents/MacOS/Python -m py_compile modules/quant/backtest.py)",
+      "Bash(/opt/homebrew/Cellar/python@3.9/3.9.16/Frameworks/Python.framework/Versions/3.9/Resources/Python.app/Contents/MacOS/Python -m py_compile modules/portfolio/portfolio_tracker.py)"
     ]
   }
 }

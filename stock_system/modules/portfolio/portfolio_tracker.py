@@ -10,11 +10,14 @@ from pathlib import Path
 from datetime import datetime
 from typing import Dict, List, Optional
 
+import threading
+
 from notify.notifier import notifier
 from utils.logger import logger
 
 _PORTFOLIO_FILE = Path(__file__).parent.parent.parent / "data" / "portfolio.json"
 _MAX_POSITIONS = 20  # 最多同时持有
+_LOCK = threading.Lock()  # 防止并发写覆盖
 
 
 def _load() -> Dict:
@@ -53,6 +56,11 @@ class PortfolioTracker:
     def add_position(self, code: str, name: str, buy_price: float,
                      source: str = "研报推荐") -> bool:
         """建仓（研报推送时自动调用）"""
+        with _LOCK:
+            return self._add_position_locked(code, name, buy_price, source)
+
+    def _add_position_locked(self, code: str, name: str, buy_price: float,
+                             source: str) -> bool:
         data = _load()
         positions = data["positions"]
         if code in positions:
@@ -73,6 +81,10 @@ class PortfolioTracker:
 
     def close_position(self, code: str) -> Optional[Dict]:
         """平仓，返回盈亏记录"""
+        with _LOCK:
+            return self._close_position_locked(code)
+
+    def _close_position_locked(self, code: str) -> Optional[Dict]:
         data = _load()
         pos = data["positions"].pop(code, None)
         if not pos:

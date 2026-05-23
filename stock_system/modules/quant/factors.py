@@ -3,17 +3,15 @@
 支持：动量因子 / 质量因子 / 技术因子
 数据来源：baostock（历史K线 + 财务季报）
 """
+import threading
 from datetime import datetime, timedelta
 from typing import Dict, Optional
 import pandas as pd
 
 from utils.logger import logger
 
-
-def _bs_login():
-    import baostock as bs
-    bs.login()
-    return bs
+# baostock 全局锁：单进程单连接，不可并发
+_BS_LOCK = threading.Lock()
 
 
 def _to_bs_code(code: str) -> str:
@@ -24,31 +22,33 @@ def _to_bs_code(code: str) -> str:
 
 def get_price_history(code: str, days: int = 130) -> Optional[pd.DataFrame]:
     """获取历史日K（收盘价/换手率），返回 DataFrame(date, close, turn)"""
-    try:
-        import baostock as bs
+    import baostock as bs
+    end = datetime.now().strftime("%Y-%m-%d")
+    start = (datetime.now() - timedelta(days=days + 50)).strftime("%Y-%m-%d")
+    rows = []
+    with _BS_LOCK:
         bs.login()
-        end = datetime.now().strftime("%Y-%m-%d")
-        start = (datetime.now() - timedelta(days=days + 50)).strftime("%Y-%m-%d")
-        rs = bs.query_history_k_data_plus(
-            _to_bs_code(code),
-            "date,close,turn,volume",
-            start_date=start, end_date=end,
-            frequency="d", adjustflag="3"
-        )
-        rows = []
-        while rs.error_code == "0" and rs.next():
-            rows.append(rs.get_row_data())
-        bs.logout()
-        if not rows:
-            return None
-        df = pd.DataFrame(rows, columns=["date", "close", "turn", "volume"])
-        df["close"] = pd.to_numeric(df["close"], errors="coerce")
-        df["turn"] = pd.to_numeric(df["turn"], errors="coerce")
-        df = df.dropna(subset=["close"]).tail(days)
-        return df.reset_index(drop=True)
-    except Exception as e:
-        logger.debug(f"获取价格历史失败({code}): {e}")
+        try:
+            rs = bs.query_history_k_data_plus(
+                _to_bs_code(code),
+                "date,close,turn,volume",
+                start_date=start, end_date=end,
+                frequency="d", adjustflag="3"
+            )
+            while rs.error_code == "0" and rs.next():
+                rows.append(rs.get_row_data())
+        except Exception as e:
+            logger.debug(f"获取价格历史失败({code}): {e}")
+        finally:
+            bs.logout()
+
+    if not rows:
         return None
+    df = pd.DataFrame(rows, columns=["date", "close", "turn", "volume"])
+    df["close"] = pd.to_numeric(df["close"], errors="coerce")
+    df["turn"] = pd.to_numeric(df["turn"], errors="coerce")
+    df = df.dropna(subset=["close"]).tail(days)
+    return df.reset_index(drop=True)
 
 
 # ─────────────────── 动量因子 ───────────────────
@@ -75,19 +75,16 @@ def calc_technical(df: pd.DataFrame) -> Dict:
     closes = df["close"].values
     result = {}
 
-    # MA方向得分：价格在MA上方 = 正分
     for period in [20, 60]:
         if len(closes) >= period:
             ma = closes[-period:].mean()
             result[f"above_ma{period}"] = 1.0 if closes[-1] > ma else -1.0
 
-    # 均线多头排列（MA20 > MA60）
     if len(closes) >= 60:
         ma20 = closes[-20:].mean()
         ma60 = closes[-60:].mean()
         result["ma_bullish"] = 1.0 if ma20 > ma60 else -1.0
 
-    # 20日平均换手率（流动性 + 活跃度）
     if "turn" in df.columns:
         turn_series = df["turn"].dropna().values
         if len(turn_series) >= 10:
@@ -100,51 +97,47 @@ def calc_technical(df: pd.DataFrame) -> Dict:
 
 def calc_quality(code: str) -> Dict:
     """从 baostock 获取最新季度财务因子（ROE/净利率/增速/负债率）"""
-    try:
-        import baostock as bs
+    import baostock as bs
+    bs_code = _to_bs_code(code)
+
+    year = datetime.now().year
+    month = datetime.now().month
+    quarter = (month - 1) // 3
+    if quarter == 0:
+        quarter = 4
+        year -= 1
+
+    result = {}
+    with _BS_LOCK:
         bs.login()
-        bs_code = _to_bs_code(code)
+        try:
+            rs = bs.query_profit_data(code=bs_code, year=year, quarter=quarter)
+            if rs.error_code == "0":
+                row = rs.get_row_data()
+                if row:
+                    d = dict(zip(rs.fields, row))
+                    result["roe"] = float(d.get("roeAvg") or 0)
+                    result["net_margin"] = float(d.get("npMargin") or 0)
 
-        year = datetime.now().year
-        month = datetime.now().month
-        # 使用上一季度（保守，避免未公布数据）
-        quarter = (month - 1) // 3
-        if quarter == 0:
-            quarter = 4
-            year -= 1
+            rs2 = bs.query_growth_data(code=bs_code, year=year, quarter=quarter)
+            if rs2.error_code == "0":
+                row2 = rs2.get_row_data()
+                if row2:
+                    d2 = dict(zip(rs2.fields, row2))
+                    result["yoy_profit"] = float(d2.get("YOYNI") or 0)
 
-        result = {}
+            rs3 = bs.query_balance_data(code=bs_code, year=year, quarter=quarter)
+            if rs3.error_code == "0":
+                row3 = rs3.get_row_data()
+                if row3:
+                    d3 = dict(zip(rs3.fields, row3))
+                    result["debt_ratio"] = float(d3.get("liabilityToAsset") or 0)
+        except Exception as e:
+            logger.debug(f"质量因子获取失败({code}): {e}")
+        finally:
+            bs.logout()
 
-        # 利润指标
-        rs = bs.query_profit_data(code=bs_code, year=year, quarter=quarter)
-        if rs.error_code == "0":
-            row = rs.get_row_data()
-            if row:
-                d = dict(zip(rs.fields, row))
-                result["roe"] = float(d.get("roeAvg") or 0)
-                result["net_margin"] = float(d.get("npMargin") or 0)
-
-        # 成长指标
-        rs2 = bs.query_growth_data(code=bs_code, year=year, quarter=quarter)
-        if rs2.error_code == "0":
-            row2 = rs2.get_row_data()
-            if row2:
-                d2 = dict(zip(rs2.fields, row2))
-                result["yoy_profit"] = float(d2.get("YOYNI") or 0)
-
-        # 资产负债
-        rs3 = bs.query_balance_data(code=bs_code, year=year, quarter=quarter)
-        if rs3.error_code == "0":
-            row3 = rs3.get_row_data()
-            if row3:
-                d3 = dict(zip(rs3.fields, row3))
-                result["debt_ratio"] = float(d3.get("liabilityToAsset") or 0)
-
-        bs.logout()
-        return result
-    except Exception as e:
-        logger.debug(f"质量因子获取失败({code}): {e}")
-        return {}
+    return result
 
 
 # ─────────────────── 综合因子打分 ───────────────────
@@ -159,23 +152,20 @@ def score_stock(code: str) -> Optional[Dict]:
     tech = calc_technical(df)
     qual = calc_quality(code)
 
-    # 如果关键数据缺失，直接跳过
-    if not mom.get("mom20") and not qual.get("roe"):
+    # 修复 L1：用 is None 判断缺失，避免 0.0 被当成缺失
+    if mom.get("mom20") is None and qual.get("roe") is None:
         return None
 
     return {
         "code": code,
-        # 动量
         "mom20": mom.get("mom20", 0),
         "mom60": mom.get("mom60", 0),
         "mom120": mom.get("mom120", 0),
-        # 技术
         "above_ma20": tech.get("above_ma20", 0),
         "ma_bullish": tech.get("ma_bullish", 0),
         "avg_turn20": tech.get("avg_turn20", 1.0),
-        # 质量
         "roe": qual.get("roe", 0),
         "net_margin": qual.get("net_margin", 0),
         "yoy_profit": qual.get("yoy_profit", 0),
-        "debt_ratio": qual.get("debt_ratio", 0.5),  # 低负债率更好（后续取反）
+        "debt_ratio": qual.get("debt_ratio", 0.5),
     }

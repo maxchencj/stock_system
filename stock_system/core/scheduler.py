@@ -3,9 +3,12 @@
 每日选股、板块分析、定时推送
 """
 import time
+from pathlib import Path
 from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.triggers.cron import CronTrigger
 from datetime import datetime
+
+_DATA_DIR = Path(__file__).parent.parent / "data"
 
 from config.settings import config
 from modules.stock_picker.picker import stock_picker
@@ -63,19 +66,29 @@ class TaskScheduler:
             replace_existing=True
         )
 
-        # 实时行情推送（交易日 9:15-11:30 和 13:00-15:00，每5分钟）
+        # 实时行情推送（交易日 9:15-11:30，每5分钟，无重叠）
+        # 9:15-9:55（每小时 :15,:20,:25,:30,:35,:40,:45,:50,:55）
         self.scheduler.add_job(
             self.realtime_market_push_task,
-            CronTrigger(hour="9-11", minute="15,20,25,30,35,40,45,50,55", day_of_week="mon-fri"),
+            CronTrigger(hour="9", minute="15,20,25,30,35,40,45,50,55", day_of_week="mon-fri"),
             id="realtime_market_push_am",
-            name="实时行情推送(上午)",
+            name="实时行情推送(上午9点)",
             replace_existing=True
         )
+        # 10:00-10:55
         self.scheduler.add_job(
             self.realtime_market_push_task,
-            CronTrigger(hour="10,11", minute="0,5,10,15,20,25,30", day_of_week="mon-fri"),
+            CronTrigger(hour="10", minute="0,5,10,15,20,25,30,35,40,45,50,55", day_of_week="mon-fri"),
             id="realtime_market_push_am2",
-            name="实时行情推送(上午2)",
+            name="实时行情推送(上午10点)",
+            replace_existing=True
+        )
+        # 11:00-11:30
+        self.scheduler.add_job(
+            self.realtime_market_push_task,
+            CronTrigger(hour="11", minute="0,5,10,15,20,25,30", day_of_week="mon-fri"),
+            id="realtime_market_push_am3",
+            name="实时行情推送(上午11点)",
             replace_existing=True
         )
         self.scheduler.add_job(
@@ -708,7 +721,7 @@ class TaskScheduler:
         """从 watchlist.json 获取自选股列表"""
         try:
             import json
-            with open("data/watchlist.json") as f:
+            with open(_DATA_DIR / "watchlist.json") as f:
                 data = json.load(f)
             codes = list(data.get("stocks", {}).keys())
             if codes:

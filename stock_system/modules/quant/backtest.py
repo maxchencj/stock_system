@@ -20,33 +20,32 @@ def _fetch_prices(codes: List[str], start: str, end: str) -> pd.DataFrame:
     """批量获取历史收盘价，返回 DataFrame(date × code)"""
     import baostock as bs
     bs.login()
-
     all_data = {}
-    for code in codes:
-        try:
-            prefix = "sh" if code.startswith("6") else "sz"
-            bs_code = f"{prefix}.{code}"
-            rs = bs.query_history_k_data_plus(
-                bs_code, "date,close",
-                start_date=start, end_date=end,
-                frequency="d", adjustflag="3"
-            )
-            rows = []
-            while rs.error_code == "0" and rs.next():
-                r = rs.get_row_data()
-                rows.append(r)
-            if rows:
-                df = pd.DataFrame(rows, columns=["date", "close"])
-                df["close"] = pd.to_numeric(df["close"], errors="coerce")
-                df = df.dropna().set_index("date")["close"]
-                all_data[code] = df
-        except Exception:
-            pass
+    try:
+        for code in codes:
+            try:
+                prefix = "sh" if code.startswith("6") else "sz"
+                bs_code = f"{prefix}.{code}"
+                rs = bs.query_history_k_data_plus(
+                    bs_code, "date,close",
+                    start_date=start, end_date=end,
+                    frequency="d", adjustflag="3"
+                )
+                rows = []
+                while rs.error_code == "0" and rs.next():
+                    rows.append(rs.get_row_data())
+                if rows:
+                    df = pd.DataFrame(rows, columns=["date", "close"])
+                    df["close"] = pd.to_numeric(df["close"], errors="coerce")
+                    df = df.dropna().set_index("date")["close"]
+                    all_data[code] = df
+            except Exception:
+                pass
+    finally:
+        bs.logout()
 
-    bs.logout()
     if not all_data:
         return pd.DataFrame()
-
     price_df = pd.DataFrame(all_data)
     price_df.index = pd.to_datetime(price_df.index)
     price_df = price_df.sort_index().ffill()
@@ -68,7 +67,8 @@ def _fetch_benchmark(start: str, end: str) -> pd.Series:
             rows.append(rs.get_row_data())
     except Exception:
         pass
-    bs.logout()
+    finally:
+        bs.logout()
 
     if not rows:
         return pd.Series(dtype=float)
@@ -97,7 +97,7 @@ def run_backtest(
     end: str,
     top_n: int = 10,
     lookback: int = 60,
-    rebalance: str = "ME",  # 月末调仓
+    rebalance: str = "M",   # 月末调仓（pandas 2.1.x 用 "M"，2.2+ 改为 "ME"）
 ) -> Dict:
     """
     运行价格动量策略回测
@@ -170,18 +170,21 @@ def run_backtest(
     # 组装 NAV 序列
     pf_series = pd.DataFrame(portfolio_values).set_index("date")["nav"]
 
-    # 对齐基准
+    # 对齐基准，获取调仓日基准价格
     bm_start = pf_series.index[0]
     bm_end = pf_series.index[-1]
     bm_sub = benchmark.loc[bm_start:bm_end]
+
+    bm_resampled = pd.Series(dtype=float)
+    bm_final = 1.0
     if not bm_sub.empty:
         bm_nav = bm_sub / bm_sub.iloc[0]
         bm_final = float(bm_nav.iloc[-1])
-    else:
-        bm_final = 1.0
+        # 用调仓日对齐基准 NAV，计算月度收益率
+        bm_resampled = bm_nav.reindex(pf_series.index, method="ffill")
 
     # 绩效指标
-    metrics = _calc_metrics(pf_series, float(bm_final), len(rebalance_dates))
+    metrics = _calc_metrics(pf_series, float(bm_final), len(rebalance_dates), bm_resampled)
 
     return {
         "start": start,
@@ -197,29 +200,31 @@ def run_backtest(
 
 # ─────────────────── 绩效指标 ───────────────────
 
-def _calc_metrics(nav: pd.Series, bm_final: float, n_periods: int) -> Dict:
+def _calc_metrics(nav: pd.Series, bm_final: float, n_periods: int,
+                  bm_nav: pd.Series = None) -> Dict:
     total_ret = nav.iloc[-1] - 1
-    years = n_periods / 12  # 月度调仓
+    years = n_periods / 12
     annual_ret = (1 + total_ret) ** (1 / max(years, 0.1)) - 1
 
-    # 月度收益率
     monthly_rets = nav.pct_change().dropna()
     sharpe = (
         monthly_rets.mean() / monthly_rets.std() * (12 ** 0.5)
         if monthly_rets.std() > 0 else 0
     )
 
-    # 最大回撤
     cummax = nav.cummax()
     drawdowns = nav / cummax - 1
     max_dd = float(drawdowns.min())
 
-    # 胜率（月度跑赢基准）
-    bm_nav_approx = pd.Series(
-        [1 + (bm_final - 1) * i / len(nav) for i in range(len(nav))],
-        index=nav.index
-    )
-    bm_monthly = bm_nav_approx.pct_change().dropna()
+    # 胜率：用真实基准月收益对比（L2 修复）
+    if bm_nav is not None and not bm_nav.empty:
+        bm_monthly = bm_nav.pct_change().dropna()
+    else:
+        # 退化：均匀分布近似
+        bm_monthly = pd.Series(
+            [(bm_final ** (1 / max(n_periods, 1)) - 1)] * len(monthly_rets),
+            index=monthly_rets.index
+        )
     min_len = min(len(monthly_rets), len(bm_monthly))
     win_rate = float((monthly_rets.values[:min_len] > bm_monthly.values[:min_len]).mean())
 

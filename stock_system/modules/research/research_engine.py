@@ -136,7 +136,7 @@ def _get_baostock_financials(code: str) -> dict:
             if row2:
                 d2 = dict(zip(rs2.fields, row2))
                 result["yoy_net_profit"] = float(d2.get("YOYNI", 0) or 0)
-                result["yoy_revenue"] = float(d2.get("YOYEquity", 0) or 0)
+                result["yoy_revenue"] = float(d2.get("YOYPNI", 0) or 0)  # 净利润同比增速
 
         # 资产负债指标
         rs3 = bs.query_balance_data(code=bs_code, year=year, quarter=quarter)
