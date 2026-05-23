@@ -179,6 +179,36 @@ class TaskScheduler:
             id="heartbeat", name="系统心跳监控", replace_existing=True
         )
 
+        # ── Phase 2：监控增强 ──────────────────────────────
+
+        # 大盘情绪雷达（交易日 15:30）
+        self.scheduler.add_job(
+            self.sentiment_task,
+            CronTrigger(hour=15, minute=30, day_of_week="mon-fri"),
+            id="sentiment", name="大盘情绪雷达", replace_existing=True
+        )
+
+        # 全市场异动扫描（交易日 15:45）
+        self.scheduler.add_job(
+            self.market_scan_task,
+            CronTrigger(hour=15, minute=45, day_of_week="mon-fri"),
+            id="market_scan", name="全市场异动扫描", replace_existing=True
+        )
+
+        # 北向资金深度追踪（交易日 17:15）
+        self.scheduler.add_job(
+            self.north_flow_task,
+            CronTrigger(hour=17, minute=15, day_of_week="mon-fri"),
+            id="north_flow", name="北向资金追踪", replace_existing=True
+        )
+
+        # 宏观经济日历（每周一 8:45）
+        self.scheduler.add_job(
+            self.macro_calendar_task,
+            CronTrigger(hour=8, minute=45, day_of_week="mon"),
+            id="macro_calendar", name="宏观经济日历", replace_existing=True
+        )
+
         # 打新提醒（每天 18:00 检查次日申购）
         self.scheduler.add_job(
             self.ipo_reminder_task,
@@ -502,6 +532,44 @@ class TaskScheduler:
             ipo_reminder.run_daily_check()
         except Exception as e:
             logger.error(f"打新提醒任务失败: {e}", exc_info=True)
+
+    # ── Phase 2 任务 ──────────────────────────────────
+
+    def sentiment_task(self):
+        """大盘情绪雷达：交易日 15:30"""
+        logger.info("执行大盘情绪雷达")
+        try:
+            from modules.sentiment.sentiment_engine import sentiment_engine
+            sentiment_engine.run_daily_push()
+        except Exception as e:
+            logger.error(f"大盘情绪雷达失败: {e}", exc_info=True)
+
+    def market_scan_task(self):
+        """全市场异动扫描：交易日 15:45"""
+        logger.info("执行全市场异动扫描")
+        try:
+            from modules.scanner.market_scanner import market_scanner
+            market_scanner.run_daily_scan()
+        except Exception as e:
+            logger.error(f"全市场异动扫描失败: {e}", exc_info=True)
+
+    def north_flow_task(self):
+        """北向资金深度追踪：交易日 17:15"""
+        logger.info("执行北向资金追踪")
+        try:
+            from modules.sentiment.north_flow import north_flow_tracker
+            north_flow_tracker.run_daily_push()
+        except Exception as e:
+            logger.error(f"北向资金追踪失败: {e}", exc_info=True)
+
+    def macro_calendar_task(self):
+        """宏观经济日历：每周一 8:45"""
+        logger.info("执行宏观经济日历推送")
+        try:
+            from modules.macro.macro_calendar import macro_calendar
+            macro_calendar.run_weekly_push()
+        except Exception as e:
+            logger.error(f"宏观经济日历失败: {e}", exc_info=True)
 
     def realtime_market_push_task(self):
         """实时行情推送任务"""
