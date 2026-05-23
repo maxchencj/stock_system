@@ -88,6 +88,9 @@ async def cmd_start(update: Update, context: ContextTypes.DEFAULT_TYPE):
         "📚 研报 & 简报\n"
         "/research <代码> — 生成研报\n"
         "/brief — 立即推送今日简报\n\n"
+        "🔢 量化选股\n"
+        "/quant — 立即运行多因子选股\n"
+        "/backtest [年数] [TopN] — 动量策略回测\n\n"
         "📂 模拟持仓\n"
         "/portfolio(/pf) — 查看模拟持仓\n"
         "/close <代码> — 平仓\n\n"
@@ -259,6 +262,66 @@ async def cmd_brief(update: Update, context: ContextTypes.DEFAULT_TYPE):
     threading.Thread(target=_do_brief, daemon=True).start()
 
 
+async def cmd_quant(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if not _auth(update):
+        return
+    await update.message.reply_text("🔢 正在运行量化选股，约需 2-4 分钟...")
+
+    def _do():
+        try:
+            from modules.quant.screener import quant_screener
+            quant_screener.run_daily_push()
+        except Exception as e:
+            from notify.notifier import notifier
+            notifier.telegram.send(f"❌ 量化选股失败: {e}")
+            logger.error(f"Bot quant失败: {e}", exc_info=True)
+
+    threading.Thread(target=_do, daemon=True).start()
+
+
+async def cmd_backtest(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if not _auth(update):
+        return
+    # 解析参数：/backtest [年数=2] [top_n=10]
+    years = 2
+    top_n = 10
+    if context.args:
+        try:
+            years = int(context.args[0])
+        except ValueError:
+            pass
+    if len(context.args) > 1:
+        try:
+            top_n = int(context.args[1])
+        except ValueError:
+            pass
+    years = max(1, min(years, 5))
+    top_n = max(5, min(top_n, 20))
+
+    await update.message.reply_text(
+        f"📊 开始回测（{years}年 / Top{top_n} / 月度调仓）\n"
+        f"下载历史数据中，约需 3-8 分钟，完成后推送结果..."
+    )
+
+    def _do():
+        try:
+            from modules.quant.backtest import run_backtest, format_backtest_report
+            from modules.quant.screener import QUANT_UNIVERSE
+            from notify.notifier import notifier
+            from datetime import datetime, timedelta
+            end = datetime.now().strftime("%Y-%m-%d")
+            start = (datetime.now() - timedelta(days=365 * years)).strftime("%Y-%m-%d")
+            result = run_backtest(QUANT_UNIVERSE, start, end, top_n=top_n)
+            report = format_backtest_report(result)
+            notifier.telegram.send(report)
+        except Exception as e:
+            from notify.notifier import notifier
+            notifier.telegram.send(f"❌ 回测失败: {e}")
+            logger.error(f"Bot backtest失败: {e}", exc_info=True)
+
+    threading.Thread(target=_do, daemon=True).start()
+
+
 async def cmd_portfolio(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if not _auth(update):
         return
@@ -374,6 +437,8 @@ def start_bot():
             app.add_handler(CommandHandler("remove", cmd_remove))
             app.add_handler(CommandHandler("research", cmd_research))
             app.add_handler(CommandHandler("brief", cmd_brief))
+            app.add_handler(CommandHandler("quant", cmd_quant))
+            app.add_handler(CommandHandler("backtest", cmd_backtest))
             app.add_handler(CommandHandler("portfolio", cmd_portfolio))
             app.add_handler(CommandHandler("pf", cmd_portfolio))
             app.add_handler(CommandHandler("close", cmd_close))

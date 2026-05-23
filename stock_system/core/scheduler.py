@@ -216,6 +216,15 @@ class TaskScheduler:
             id="ipo_reminder", name="打新提醒", replace_existing=True
         )
 
+        # ── Phase 5：量化选股 ──────────────────────────────────
+
+        # 多因子量化选股（工作日 8:50，开盘前推送）
+        self.scheduler.add_job(
+            self.quant_screener_task,
+            CronTrigger(hour=8, minute=50, day_of_week="mon-fri"),
+            id="quant_screener", name="量化多因子选股", replace_existing=True
+        )
+
         # ── Phase 4：复盘 & 持仓 ──────────────────────────────
 
         # 每日复盘模板（交易日 21:00）
@@ -624,6 +633,17 @@ class TaskScheduler:
             logger.error(f"行业估值面板失败: {e}", exc_info=True)
 
     # ── Phase 4 任务 ──────────────────────────────────
+
+    # ── Phase 5 任务 ──────────────────────────────────
+
+    def quant_screener_task(self):
+        """多因子量化选股：工作日 8:50"""
+        logger.info("执行量化多因子选股")
+        try:
+            from modules.quant.screener import quant_screener
+            quant_screener.run_daily_push()
+        except Exception as e:
+            logger.error(f"量化选股失败: {e}", exc_info=True)
 
     def daily_review_task(self):
         """每日复盘：交易日 21:00"""
