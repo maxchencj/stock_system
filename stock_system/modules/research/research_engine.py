@@ -71,6 +71,8 @@ class ResearchLog:
         return self._data.get(market, [])
 
     def mark_pushed(self, market: str, codes: List[str]):
+        # 写前重新读磁盘，避免两个实例互相覆盖对方的 market 数据
+        self._data = self._load()
         if market not in self._data:
             self._data[market] = []
         self._data[market].extend(codes)
