@@ -155,7 +155,22 @@
       "Bash(/opt/homebrew/Cellar/python@3.9/3.9.16/Frameworks/Python.framework/Versions/3.9/Resources/Python.app/Contents/MacOS/Python -m py_compile modules/quant/factors.py)",
       "Bash(/opt/homebrew/Cellar/python@3.9/3.9.16/Frameworks/Python.framework/Versions/3.9/Resources/Python.app/Contents/MacOS/Python -m py_compile modules/quant/screener.py)",
       "Bash(/opt/homebrew/Cellar/python@3.9/3.9.16/Frameworks/Python.framework/Versions/3.9/Resources/Python.app/Contents/MacOS/Python -m py_compile modules/quant/backtest.py)",
-      "Bash(/opt/homebrew/Cellar/python@3.9/3.9.16/Frameworks/Python.framework/Versions/3.9/Resources/Python.app/Contents/MacOS/Python -m py_compile modules/portfolio/portfolio_tracker.py)"
+      "Bash(/opt/homebrew/Cellar/python@3.9/3.9.16/Frameworks/Python.framework/Versions/3.9/Resources/Python.app/Contents/MacOS/Python -m py_compile modules/portfolio/portfolio_tracker.py)",
+      "Bash(python3 -m json.tool)",
+      "Bash(npx --version)",
+      "Bash(npx -y @modelcontextprotocol/server-sqlite --help)",
+      "Bash(uvx --version)",
+      "Bash(uv --version)",
+      "Bash(pip3 show *)",
+      "Bash(pip3 install *)",
+      "Bash(pip3 list *)",
+      "Bash(python3 -m mcp_server_sqlite --help)",
+      "Bash(timeout 3 /Library/Frameworks/Python.framework/Versions/3.11/bin/python3 -c \"from mcp_server_sqlite import main; main\\(\\)\" --db-path /Users/maxchen/Desktop/claudeForStock/stock_system/data/push_history.db)",
+      "Bash(echo \"exit: $?\")",
+      "Bash(gtimeout 3 /Library/Frameworks/Python.framework/Versions/3.11/bin/python3 -c \"from mcp_server_sqlite import main; main\\(\\)\" --db-path /Users/maxchen/Desktop/claudeForStock/stock_system/data/push_history.db)",
+      "Bash(sqlite3 *)",
+      "Bash(/Library/Frameworks/Python.framework/Versions/3.11/bin/python3 *)",
+      "Bash(echo \"EXIT:$?\")"
     ]
   }
 }
