@@ -170,7 +170,19 @@
       "Bash(gtimeout 3 /Library/Frameworks/Python.framework/Versions/3.11/bin/python3 -c \"from mcp_server_sqlite import main; main\\(\\)\" --db-path /Users/maxchen/Desktop/claudeForStock/stock_system/data/push_history.db)",
       "Bash(sqlite3 *)",
       "Bash(/Library/Frameworks/Python.framework/Versions/3.11/bin/python3 *)",
-      "Bash(echo \"EXIT:$?\")"
+      "Bash(echo \"EXIT:$?\")",
+      "Bash(python3 -c \"import json,sys; d=json.load\\(sys.stdin\\); print\\(type\\(d\\), len\\(d\\) if isinstance\\(d,list\\) else list\\(d.keys\\(\\)\\)[:10]\\)\")",
+      "Bash(python3 -c \"import json; d=json.load\\(open\\('/Users/maxchen/Desktop/claudeForStock/stock_system/data/api_usage.json'\\)\\); print\\(list\\(d.keys\\(\\)\\)\\); print\\(list\\(d.get\\('daily',{}\\).keys\\(\\)\\)[:3]\\)\")",
+      "Bash(python3 -c \"from stock_system.agent.prompts import SYSTEM_PROMPT; print\\('OK'\\)\")",
+      "Bash(python3 *)",
+      "Bash(git -C /Users/maxchen/Desktop/claudeForStock add stock_system/agent/tools.py stock_system/tests/test_agent_tools.py)",
+      "Bash(git -C /Users/maxchen/Desktop/claudeForStock commit -m ' *)",
+      "Bash(PYTHONPATH=/Users/maxchen/Desktop/claudeForStock python3 *)",
+      "Bash(env)",
+      "Bash(git -C /Users/maxchen/Desktop/claudeForStock status)",
+      "Bash(git -C /Users/maxchen/Desktop/claudeForStock diff --stat)",
+      "Bash(git -C /Users/maxchen/Desktop/claudeForStock add stock_system/tests/test_agent_e2e.py stock_system/data/knowledge_log.json stock_system/data/research_log.json)",
+      "Bash(git *)"
     ]
   }
 }
