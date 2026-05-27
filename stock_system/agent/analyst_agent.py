@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
-"""数据分析 Agent 主入口"""
+"""数据分析 Agent 主入口（使用 DeepSeek API）"""
 
 import json
+import os
 import sys
-import anthropic
-from anthropic import Anthropic
+from openai import OpenAI, APIError
 from stock_system.agent.prompts import SYSTEM_PROMPT
 from stock_system.agent import tools as tool_module
 
@@ -12,67 +12,82 @@ MAX_TOOL_ROUNDS = 10
 
 TOOLS = [
     {
-        "name": "query_push_history",
-        "description": "执行 SQL 查询 push_history 数据库，仅支持 SELECT / WITH 语句",
-        "input_schema": {
-            "type": "object",
-            "properties": {
-                "sql": {"type": "string", "description": "SELECT SQL 语句"}
-            },
-            "required": ["sql"],
-        },
-    },
-    {
-        "name": "read_portfolio",
-        "description": "读取持仓与交易历史",
-        "input_schema": {
-            "type": "object",
-            "properties": {
-                "section": {
-                    "type": "string",
-                    "enum": ["positions", "history", "all"],
-                    "description": "读取的部分，默认 all",
-                }
+        "type": "function",
+        "function": {
+            "name": "query_push_history",
+            "description": "执行 SQL 查询 push_history 数据库，仅支持 SELECT / WITH 语句",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "sql": {"type": "string", "description": "SELECT SQL 语句"}
+                },
+                "required": ["sql"],
             },
         },
     },
     {
-        "name": "read_quant_scores",
-        "description": "读取量化评分数据",
-        "input_schema": {
-            "type": "object",
-            "properties": {
-                "date": {
-                    "type": "string",
-                    "description": "指定日期 YYYY-MM-DD，不传则返回所有日期",
-                }
+        "type": "function",
+        "function": {
+            "name": "read_portfolio",
+            "description": "读取持仓与交易历史",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "section": {
+                        "type": "string",
+                        "enum": ["positions", "history", "all"],
+                        "description": "读取的部分，默认 all",
+                    }
+                },
             },
         },
     },
     {
-        "name": "read_api_usage",
-        "description": "读取 API 使用量统计",
-        "input_schema": {
-            "type": "object",
-            "properties": {
-                "days": {
-                    "type": "integer",
-                    "description": "最近 N 天，默认 7",
-                }
+        "type": "function",
+        "function": {
+            "name": "read_quant_scores",
+            "description": "读取量化评分数据",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "date": {
+                        "type": "string",
+                        "description": "指定日期 YYYY-MM-DD，不传则返回所有日期",
+                    }
+                },
             },
         },
     },
     {
-        "name": "read_watchlist",
-        "description": "读取自选股池",
-        "input_schema": {
-            "type": "object",
-            "properties": {
-                "market": {
-                    "type": "string",
-                    "enum": ["a_share", "us_stock", "all"],
-                    "description": "市场，默认 all",
-                }
+        "type": "function",
+        "function": {
+            "name": "read_api_usage",
+            "description": "读取 API 使用量统计",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "days": {
+                        "type": "integer",
+                        "description": "最近 N 天，默认 7",
+                    }
+                },
+            },
+        },
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "read_watchlist",
+            "description": "读取自选股池",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "market": {
+                        "type": "string",
+                        "enum": ["a_share", "us_stock", "all"],
+                        "description": "市场，默认 all",
+                    }
+                },
             },
         },
     },
@@ -86,7 +101,17 @@ TOOL_DISPATCH = {
     "read_watchlist": tool_module.read_watchlist,
 }
 
-_client = Anthropic()
+_client: OpenAI | None = None
+
+
+def _get_client() -> OpenAI:
+    global _client
+    if _client is None:
+        api_key = os.environ.get("DEEPSEEK_API_KEY")
+        if not api_key:
+            raise RuntimeError("请设置环境变量 DEEPSEEK_API_KEY")
+        _client = OpenAI(api_key=api_key, base_url="https://api.deepseek.com")
+    return _client
 
 
 def run_agent(question: str, messages: list[dict]) -> tuple[str, list[dict]]:
@@ -103,48 +128,45 @@ def run_agent(question: str, messages: list[dict]) -> tuple[str, list[dict]]:
 
     for _ in range(MAX_TOOL_ROUNDS):
         try:
-            response = _client.messages.create(
-                model="claude-sonnet-4-6",
-                max_tokens=4096,
-                system=SYSTEM_PROMPT,
+            response = _get_client().chat.completions.create(
+                model="deepseek-chat",
+                messages=[{"role": "system", "content": SYSTEM_PROMPT}] + messages,
                 tools=TOOLS,
-                messages=messages,
+                tool_choice="auto",
             )
-        except anthropic.APIError as e:
+        except APIError as e:
             return f"API 错误：{e}", messages
 
-        if response.stop_reason == "end_turn":
-            text = next(
-                (b.text for b in response.content if hasattr(b, "text")), ""
-            )
-            messages.append({"role": "assistant", "content": response.content})
-            return text, messages
+        msg = response.choices[0].message
+        finish_reason = response.choices[0].finish_reason
 
-        if response.stop_reason == "tool_use":
-            messages.append({"role": "assistant", "content": response.content})
-            tool_results = []
-            for block in response.content:
-                if block.type == "tool_use":
-                    fn = TOOL_DISPATCH.get(block.name)
-                    if fn is None:
-                        result: dict = {"error": f"未知工具: {block.name}"}
-                    else:
-                        try:
-                            result = fn(**block.input)
-                        except Exception as e:
-                            result = {"error": str(e)}
-                    tool_results.append(
-                        {
-                            "type": "tool_result",
-                            "tool_use_id": block.id,
-                            "content": json.dumps(result, ensure_ascii=False),
-                        }
-                    )
-            messages.append({"role": "user", "content": tool_results})
+        if finish_reason == "tool_calls" and msg.tool_calls:
+            messages.append({"role": "assistant", "content": msg.content, "tool_calls": [
+                {"id": tc.id, "type": "function", "function": {"name": tc.function.name, "arguments": tc.function.arguments}}
+                for tc in msg.tool_calls
+            ]})
+            for tc in msg.tool_calls:
+                fn = TOOL_DISPATCH.get(tc.function.name)
+                if fn is None:
+                    result: dict = {"error": f"未知工具: {tc.function.name}"}
+                else:
+                    try:
+                        result = fn(**json.loads(tc.function.arguments))
+                    except Exception as e:
+                        result = {"error": str(e)}
+                messages.append({
+                    "role": "tool",
+                    "tool_call_id": tc.id,
+                    "content": json.dumps(result, ensure_ascii=False),
+                })
             continue
 
-        # max_tokens / stop_sequence 等非预期 stop_reason，兜底退出
-        return f"意外停止原因：{response.stop_reason}", messages
+        if finish_reason == "stop":
+            text = msg.content or ""
+            messages.append({"role": "assistant", "content": text})
+            return text, messages
+
+        return f"意外停止原因：{finish_reason}", messages
 
     return "已达最大工具调用轮次，任务中止", messages
 
