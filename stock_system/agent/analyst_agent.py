@@ -3,9 +3,12 @@
 
 import json
 import sys
+import anthropic
 from anthropic import Anthropic
 from stock_system.agent.prompts import SYSTEM_PROMPT
 from stock_system.agent import tools as tool_module
+
+MAX_TOOL_ROUNDS = 10
 
 TOOLS = [
     {
@@ -83,23 +86,32 @@ TOOL_DISPATCH = {
     "read_watchlist": tool_module.read_watchlist,
 }
 
+_client = Anthropic()
 
-def run_agent(question: str, messages: list) -> tuple[str, list]:
+
+def run_agent(question: str, messages: list[dict]) -> tuple[str, list[dict]]:
     """执行一轮 Agent 推理，自动处理工具调用循环。
 
-    返回 (最终回答文本, 更新后的 messages 列表)
+    Args:
+        question: 用户问题字符串
+        messages: 历史对话列表，每项为 {"role": ..., "content": ...}
+
+    Returns:
+        (最终回答文本, 更新后的 messages 列表)
     """
-    client = Anthropic()
     messages = messages + [{"role": "user", "content": question}]
 
-    while True:
-        response = client.messages.create(
-            model="claude-sonnet-4-6",
-            max_tokens=4096,
-            system=SYSTEM_PROMPT,
-            tools=TOOLS,
-            messages=messages,
-        )
+    for _ in range(MAX_TOOL_ROUNDS):
+        try:
+            response = _client.messages.create(
+                model="claude-sonnet-4-6",
+                max_tokens=4096,
+                system=SYSTEM_PROMPT,
+                tools=TOOLS,
+                messages=messages,
+            )
+        except anthropic.APIError as e:
+            return f"API 错误：{e}", messages
 
         if response.stop_reason == "end_turn":
             text = next(
@@ -113,8 +125,14 @@ def run_agent(question: str, messages: list) -> tuple[str, list]:
             tool_results = []
             for block in response.content:
                 if block.type == "tool_use":
-                    fn = TOOL_DISPATCH[block.name]
-                    result = fn(**block.input)
+                    fn = TOOL_DISPATCH.get(block.name)
+                    if fn is None:
+                        result: dict = {"error": f"未知工具: {block.name}"}
+                    else:
+                        try:
+                            result = fn(**block.input)
+                        except Exception as e:
+                            result = {"error": str(e)}
                     tool_results.append(
                         {
                             "type": "tool_result",
@@ -123,11 +141,22 @@ def run_agent(question: str, messages: list) -> tuple[str, list]:
                         }
                     )
             messages.append({"role": "user", "content": tool_results})
+            continue
+
+        # max_tokens / stop_sequence 等非预期 stop_reason，兜底退出
+        return f"意外停止原因：{response.stop_reason}", messages
+
+    return "已达最大工具调用轮次，任务中止", messages
 
 
 def main() -> None:
-    """命令行入口：单次提问或交互式多轮对话。"""
-    messages: list = []
+    """命令行入口：单次提问或交互式多轮对话。
+
+    用法：
+      python3 analyst_agent.py "问题"   # 单次模式
+      python3 analyst_agent.py          # 交互式模式
+    """
+    messages: list[dict] = []
 
     if len(sys.argv) > 1:
         question = " ".join(sys.argv[1:])
