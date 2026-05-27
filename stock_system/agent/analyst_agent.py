@@ -4,9 +4,13 @@
 import json
 import os
 import sys
+from pathlib import Path
+from dotenv import load_dotenv
 from openai import OpenAI, APIError
 from stock_system.agent.prompts import SYSTEM_PROMPT
 from stock_system.agent import tools as tool_module
+
+load_dotenv(Path(__file__).parent.parent / ".env")
 
 MAX_TOOL_ROUNDS = 10
 
