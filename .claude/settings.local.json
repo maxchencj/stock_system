@@ -182,7 +182,11 @@
       "Bash(git -C /Users/maxchen/Desktop/claudeForStock status)",
       "Bash(git -C /Users/maxchen/Desktop/claudeForStock diff --stat)",
       "Bash(git -C /Users/maxchen/Desktop/claudeForStock add stock_system/tests/test_agent_e2e.py stock_system/data/knowledge_log.json stock_system/data/research_log.json)",
-      "Bash(git *)"
+      "Bash(git *)",
+      "Bash(python3.12 -c \"import akshare as ak; df = ak.stock_zh_a_spot_em\\(\\); print\\('列名:', list\\(df.columns\\)[:10]\\)\")",
+      "Read(//usr/local/bin/**)",
+      "Bash(pyenv versions *)",
+      "Bash(/usr/local/bin/python3 *)"
     ]
   }
 }
