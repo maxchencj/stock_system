@@ -30,15 +30,6 @@ class TaskScheduler:
             logger.warning("调度器已在运行")
             return
 
-        # 每日选股任务（交易日早上9:45）
-        self.scheduler.add_job(
-            self.daily_stock_pick_task,
-            CronTrigger(hour=9, minute=45, day_of_week="mon-fri"),
-            id="daily_stock_pick",
-            name="每日选股",
-            replace_existing=True
-        )
-
         # 板块分析任务（交易日下午5:00）
         self.scheduler.add_job(
             self.daily_sector_analysis_task,
@@ -241,21 +232,6 @@ class TaskScheduler:
             logger.info(f"  - {job.name} (ID: {job.id}) | 下次运行: {job.next_run_time}")
 
     # ─────────────────── 任务函数 ───────────────────
-
-    def daily_stock_pick_task(self):
-        """每日选股任务"""
-        logger.info("=" * 60)
-        logger.info("执行定时任务: 每日选股")
-        try:
-            result = stock_picker.run_daily_scan()
-            if result.get("status") == "success":
-                report = stock_picker.format_daily_report(result)
-                notifier.send_daily_picks(report)
-                logger.info("每日选股任务完成，已推送报告")
-            else:
-                logger.warning(f"选股任务状态异常: {result.get('status')}")
-        except Exception as e:
-            logger.error(f"每日选股任务失败: {e}", exc_info=True)
 
     def daily_sector_analysis_task(self):
         """板块分析任务"""
