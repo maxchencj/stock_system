@@ -57,14 +57,6 @@ class TaskScheduler:
             replace_existing=True
         )
 
-        # 市场早报（仅周一到周五早上8:00）
-        self.scheduler.add_job(
-            self.morning_brief_task,
-            CronTrigger(hour=8, minute=0, day_of_week="mon-fri"),
-            id="morning_brief",
-            name="市场早报",
-            replace_existing=True
-        )
 
         # 实时行情推送（交易日 9:15-11:30，每5分钟，无重叠）
         # 9:15-9:55（每小时 :15,:20,:25,:30,:35,:40,:45,:50,:55）
@@ -150,18 +142,11 @@ class TaskScheduler:
             id="us_earnings", name="美股财报日提醒", replace_existing=True
         )
 
-        # 财经新闻早报（每天 8:15）
+        # 财经早报（交易日 8:00）
         self.scheduler.add_job(
             self.morning_news_task,
-            CronTrigger(hour=8, minute=15),
+            CronTrigger(hour=8, minute=0, day_of_week="mon-fri"),
             id="morning_news", name="财经早报", replace_existing=True
-        )
-
-        # 财经新闻晚报（每天 20:15）
-        self.scheduler.add_job(
-            self.evening_news_task,
-            CronTrigger(hour=20, minute=15),
-            id="evening_news", name="财经晚报", replace_existing=True
         )
 
         # 自选股每日跟踪（每天晚8:30，交易日推日报，周末推周报）
@@ -229,14 +214,6 @@ class TaskScheduler:
             id="ipo_reminder", name="打新提醒", replace_existing=True
         )
 
-        # ── Phase 5：量化选股 ──────────────────────────────────
-
-        # 多因子量化选股（工作日 8:50，开盘前推送）
-        self.scheduler.add_job(
-            self.quant_screener_task,
-            CronTrigger(hour=8, minute=50, day_of_week="mon-fri"),
-            id="quant_screener", name="量化多因子选股", replace_existing=True
-        )
 
         # ── Phase 4：复盘 & 持仓 ──────────────────────────────
 
@@ -256,12 +233,6 @@ class TaskScheduler:
 
         # ── Phase 3：数据增强 ──────────────────────────────
 
-        # 大宗交易监控（交易日 19:30）
-        self.scheduler.add_job(
-            self.block_trade_task,
-            CronTrigger(hour=19, minute=30, day_of_week="mon-fri"),
-            id="block_trade", name="大宗交易监控", replace_existing=True
-        )
 
         # 行业估值面板（每周六 10:00）
         self.scheduler.add_job(
@@ -321,48 +292,6 @@ class TaskScheduler:
                 logger.warning(f"板块分析状态异常: {result.get('status')}")
         except Exception as e:
             logger.error(f"板块分析任务失败: {e}", exc_info=True)
-
-    def morning_brief_task(self):
-        """市场早报任务"""
-        logger.info("=" * 60)
-        logger.info("执行定时任务: 市场早报")
-        try:
-            from ai.analysis_engine import ai_engine
-            import akshare as ak
-
-            # 获取市场数据
-            try:
-                # 获取上证指数最新数据
-                sh_index = ak.stock_zh_index_daily(symbol="sh000001")
-                latest = sh_index.tail(1).iloc[0]
-
-                market_data = {
-                    "date": datetime.now().strftime("%Y-%m-%d"),
-                    "index_close": float(latest.get('close', 0)),
-                    "index_change": float(latest.get('pct_chg', 0)) if 'pct_chg' in latest else 0,
-                    "volume": float(latest.get('volume', 0)),
-                }
-            except Exception as e:
-                logger.warning(f"获取市场数据失败: {e}，使用默认数据")
-                market_data = {
-                    "date": datetime.now().strftime("%Y-%m-%d"),
-                    "message": "今日市场早报"
-                }
-
-            # 生成早报
-            brief = ai_engine.generate_morning_brief(market_data)
-
-            # 推送早报
-            if brief:
-                try:
-                    notifier.send_morning_brief(brief)
-                    logger.info("市场早报任务完成，已推送")
-                except Exception as push_error:
-                    logger.error(f"市场早报推送失败: {push_error}", exc_info=True)
-            else:
-                logger.warning("市场早报生成失败")
-        except Exception as e:
-            logger.error(f"市场早报任务失败: {e}", exc_info=True)
 
     # ─────────────────── 手动触发 ───────────────────
 

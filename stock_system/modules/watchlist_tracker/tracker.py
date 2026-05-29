@@ -5,12 +5,14 @@
 A股 → A股Bot | 美股 → mcDolphin Bot
 """
 import json
+import os
 import time
 from datetime import datetime, timedelta
 from pathlib import Path
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Tuple
 
 import pandas as pd
+import requests
 
 from ai.analysis_engine import ai_engine
 from notify.notifier import notifier
@@ -85,62 +87,168 @@ def _get_history_baostock(code: str, days: int = 90) -> pd.DataFrame:
         return pd.DataFrame()
 
 
+# ─────────────────── 消息面：公告 + 个股新闻 ───────────────────
+
+def _fetch_stock_news(code: str, ts_code: str) -> str:
+    """获取个股最近公告和新闻，返回格式化字符串"""
+    items = []
+
+    # 1. Tushare 公告（anns_d）
+    try:
+        import tushare as ts
+        pro = ts.pro_api(os.getenv("TUSHARE_TOKEN", ""))
+        end = datetime.now().strftime("%Y%m%d")
+        start = (datetime.now() - timedelta(days=7)).strftime("%Y%m%d")
+        anns = pro.anns_d(ts_code=ts_code, start_date=start, end_date=end,
+                          fields="ann_date,title")
+        if anns is not None and not anns.empty:
+            for _, row in anns.head(4).iterrows():
+                items.append(f"[公告 {row['ann_date']}] {row['title']}")
+    except Exception as e:
+        logger.debug(f"获取公告失败 {ts_code}: {e}")
+
+    # 2. 东方财富 个股新闻
+    try:
+        url = (
+            f"https://np-anotice-stock.eastmoney.com/api/security/ann"
+            f"?sr=-1&page_size=5&page_index=1&ann_type=A"
+            f"&client_source=web&stock_list={code}"
+        )
+        resp = requests.get(url, timeout=6,
+                            headers={"User-Agent": "Mozilla/5.0"})
+        data = resp.json().get("data", {}).get("list", [])
+        for item in data[:3]:
+            title = item.get("title", "")
+            date  = item.get("notice_date", "")[:10]
+            if title:
+                items.append(f"[公告 {date}] {title}")
+    except Exception:
+        pass
+
+    # 3. 新浪财经 个股新闻
+    try:
+        url = f"https://feed.mix.sina.com.cn/api/roll/get?pageid=153&lid=2513&k={code}&num=5&page=1"
+        resp = requests.get(url, timeout=6,
+                            headers={"User-Agent": "Mozilla/5.0"})
+        news_list = resp.json().get("result", {}).get("data", [])
+        for n in news_list[:3]:
+            title = n.get("title", "")
+            ctime = n.get("ctime", "")[:10]
+            if title:
+                items.append(f"[新闻 {ctime}] {title}")
+    except Exception:
+        pass
+
+    if not items:
+        return "暂无近期公告/新闻"
+
+    # 去重
+    seen, unique = set(), []
+    for it in items:
+        key = it[10:]  # 去掉日期前缀再去重
+        if key not in seen:
+            seen.add(key)
+            unique.append(it)
+    return "\n".join(unique[:6])
+
+
 # ─────────────────── 技术指标计算 ───────────────────
 
 def _calc_indicators(df: pd.DataFrame) -> Optional[Dict]:
-    """计算技术指标，返回最新一行的关键数值"""
+    """计算多维技术指标（MA/MACD/RSI/KDJ/布林/量能）"""
     if df.empty or len(df) < 26:
         return None
     try:
-        close = df["close"]
+        close  = df["close"].astype(float)
+        high   = df["high"].astype(float)
+        low    = df["low"].astype(float)
+        volume = df["volume"].astype(float)
+        n      = len(close)
 
-        # 均线
-        ma5 = close.rolling(5).mean().iloc[-1]
+        # ── 均线
+        ma5  = close.rolling(5).mean().iloc[-1]
         ma10 = close.rolling(10).mean().iloc[-1]
         ma20 = close.rolling(20).mean().iloc[-1]
+        ma60 = close.rolling(60).mean().iloc[-1] if n >= 60 else None
 
-        # MACD
-        ema12 = close.ewm(span=12, adjust=False).mean()
-        ema26 = close.ewm(span=26, adjust=False).mean()
-        dif = ema12 - ema26
-        dea = dif.ewm(span=9, adjust=False).mean()
-        macd_dif = round(dif.iloc[-1], 4)
-        macd_dea = round(dea.iloc[-1], 4)
-        macd_bar = round(2 * (dif.iloc[-1] - dea.iloc[-1]), 4)
-        # 判断金叉死叉（最近两日DIF与DEA的相对位置变化）
-        cross = ""
-        if len(dif) >= 2:
-            if dif.iloc[-2] < dea.iloc[-2] and dif.iloc[-1] > dea.iloc[-1]:
-                cross = "金叉"
-            elif dif.iloc[-2] > dea.iloc[-2] and dif.iloc[-1] < dea.iloc[-1]:
-                cross = "死叉"
-
-        # RSI
-        delta = close.diff()
-        gain = delta.where(delta > 0, 0.0)
-        loss = -delta.where(delta < 0, 0.0)
-        avg_gain = gain.ewm(com=13, min_periods=14).mean()
-        avg_loss = loss.ewm(com=13, min_periods=14).mean()
-        rs = avg_gain / avg_loss.replace(0, 1e-10)
-        rsi = round((100 - 100 / (1 + rs)).iloc[-1], 1)
-
-        # 近期支撑/压力（20日最低/最高）
-        support = round(df["low"].tail(20).min(), 2)
-        resistance = round(df["high"].tail(20).max(), 2)
-
-        current = round(close.iloc[-1], 2)
-        ma_position = (
+        current = float(close.iloc[-1])
+        ma_pos = (
             "三线多头" if current > ma5 > ma10 > ma20
             else "三线空头" if current < ma5 < ma10 < ma20
             else "多空交织"
         )
 
+        # ── MACD (12,26,9)
+        ema12 = close.ewm(span=12, adjust=False).mean()
+        ema26 = close.ewm(span=26, adjust=False).mean()
+        dif   = ema12 - ema26
+        dea   = dif.ewm(span=9, adjust=False).mean()
+        bar   = 2 * (dif - dea)
+        cross = ""
+        if dif.iloc[-2] < dea.iloc[-2] and dif.iloc[-1] > dea.iloc[-1]:
+            cross = "金叉"
+        elif dif.iloc[-2] > dea.iloc[-2] and dif.iloc[-1] < dea.iloc[-1]:
+            cross = "死叉"
+
+        # ── RSI (14)
+        delta    = close.diff()
+        avg_gain = delta.where(delta > 0, 0.0).ewm(com=13, min_periods=14).mean()
+        avg_loss = (-delta.where(delta < 0, 0.0)).ewm(com=13, min_periods=14).mean()
+        rsi = round(float((100 - 100 / (1 + avg_gain / avg_loss.replace(0, 1e-10))).iloc[-1]), 1)
+
+        # ── KDJ (9,3,3)
+        low9  = low.rolling(9).min()
+        high9 = high.rolling(9).max()
+        rsv   = (close - low9) / (high9 - low9 + 1e-9) * 100
+        k     = rsv.ewm(com=2, adjust=False).mean()
+        d     = k.ewm(com=2, adjust=False).mean()
+        j     = 3 * k - 2 * d
+        kdj_k = round(float(k.iloc[-1]), 1)
+        kdj_d = round(float(d.iloc[-1]), 1)
+        kdj_j = round(float(j.iloc[-1]), 1)
+
+        # ── 布林带 (20,2)
+        bb_mid   = close.rolling(20).mean()
+        bb_std   = close.rolling(20).std()
+        bb_upper = float((bb_mid + 2 * bb_std).iloc[-1])
+        bb_lower = float((bb_mid - 2 * bb_std).iloc[-1])
+        bb_mid_v = float(bb_mid.iloc[-1])
+        bb_pos   = (current - bb_lower) / (bb_upper - bb_lower + 1e-9)
+
+        # ── 量能分析
+        vol_ma5  = float(volume.rolling(5).mean().iloc[-1])
+        vol_ma20 = float(volume.rolling(20).mean().iloc[-1])
+        vol_ratio_5  = round(float(volume.iloc[-1]) / vol_ma5, 2)  if vol_ma5  > 0 else 1.0
+        vol_ratio_20 = round(float(volume.iloc[-1]) / vol_ma20, 2) if vol_ma20 > 0 else 1.0
+        vol_trend = (
+            "放量" if vol_ratio_5 >= 1.5
+            else "缩量" if vol_ratio_5 <= 0.7
+            else "平量"
+        )
+
+        # ── 近期支撑/压力（20日区间）
+        support    = round(float(low.tail(20).min()), 2)
+        resistance = round(float(high.tail(20).max()), 2)
+
         return {
-            "ma5": round(ma5, 2), "ma10": round(ma10, 2), "ma20": round(ma20, 2),
-            "ma_position": ma_position,
-            "macd_dif": macd_dif, "macd_dea": macd_dea, "macd_bar": macd_bar,
+            "current": round(current, 2),
+            "ma5":  round(ma5, 2), "ma10": round(ma10, 2),
+            "ma20": round(ma20, 2),
+            "ma60": round(ma60, 2) if ma60 else None,
+            "ma_pos": ma_pos,
+            "macd_dif": round(float(dif.iloc[-1]), 4),
+            "macd_dea": round(float(dea.iloc[-1]), 4),
+            "macd_bar": round(float(bar.iloc[-1]), 4),
             "macd_cross": cross,
             "rsi": rsi,
+            "kdj_k": kdj_k, "kdj_d": kdj_d, "kdj_j": kdj_j,
+            "bb_upper": round(bb_upper, 2),
+            "bb_mid":   round(bb_mid_v, 2),
+            "bb_lower": round(bb_lower, 2),
+            "bb_pos":   round(bb_pos, 2),
+            "vol_ratio_5": vol_ratio_5,
+            "vol_ratio_20": vol_ratio_20,
+            "vol_trend": vol_trend,
             "support": support, "resistance": resistance,
         }
     except Exception as e:
@@ -148,11 +256,52 @@ def _calc_indicators(df: pd.DataFrame) -> Optional[Dict]:
         return None
 
 
-# ─────────────────── AI 研判 ───────────────────
+# ─────────────────── K线形态描述 ───────────────────
+
+def _describe_candles(df: pd.DataFrame, n: int = 5) -> str:
+    """描述最近 n 根K线的形态特征"""
+    if df.empty or len(df) < n:
+        return "K线数据不足"
+    try:
+        recent = df.tail(n).reset_index(drop=True)
+        lines = []
+        for _, row in recent.iterrows():
+            o, h, l, c = float(row["open"]), float(row["high"]), float(row["low"]), float(row["close"])
+            body  = abs(c - o)
+            total = h - l if h > l else 1e-9
+            upper_shadow = h - max(o, c)
+            lower_shadow = min(o, c) - l
+            body_ratio   = body / total
+
+            direction = "阳线" if c >= o else "阴线"
+            if body_ratio < 0.1:
+                shape = "十字星"
+            elif body_ratio > 0.7:
+                shape = f"实体{direction}"
+            elif upper_shadow / total > 0.4:
+                shape = "上影线长"
+            elif lower_shadow / total > 0.4:
+                shape = "下影线长（锤子）" if direction == "阳线" else "下影线长"
+            else:
+                shape = direction
+
+            chg = (c - o) / o * 100
+            date_str = str(row.get("date", ""))[:10]
+            lines.append(f"{date_str}  {shape}  {chg:+.2f}%  高{h:.2f}/低{l:.2f}/收{c:.2f}")
+        return "\n".join(lines)
+    except Exception as e:
+        return f"K线描述失败: {e}"
+
+
+# ─────────────────── AI 全方位研判 ───────────────────
 
 def _ai_analysis(name: str, code: str, quote: Dict, ind: Optional[Dict],
-                 is_weekly: bool = False, weekly_data: str = "") -> str:
-    system_prompt = "你是专业的股票分析师，擅长结合技术面和基本面给出简洁实用的投资建议。请用中文输出。"
+                 is_weekly: bool = False, weekly_data: str = "",
+                 news_text: str = "", candle_text: str = "") -> str:
+    system_prompt = (
+        "你是资深A股研究员，擅长多维度综合分析：消息面解读、技术形态研判、"
+        "K线过程解析、量价关系研究，并能给出可操作的具体建议。请用中文输出。"
+    )
 
     if is_weekly:
         user_prompt = f"""请对以下股票进行本周总结分析：
@@ -161,7 +310,7 @@ def _ai_analysis(name: str, code: str, quote: Dict, ind: Optional[Dict],
 本周数据：
 {weekly_data}
 
-请按以下格式输出（300字以内）：
+请按以下格式输出（400字以内）：
 
 【本周回顾】价格走势、涨跌幅度、成交量变化（2-3句）
 
@@ -170,35 +319,52 @@ def _ai_analysis(name: str, code: str, quote: Dict, ind: Optional[Dict],
 【下周展望】关键支撑/压力位、可能的走势方向（2-3句）
 
 【持仓建议】持股/减仓/观望/关注买入 + 一句理由"""
+
     else:
         ind_text = ""
         if ind:
+            ma60_str = f"  MA60={ind['ma60']}" if ind.get("ma60") else ""
             ind_text = f"""
 技术指标：
-  均线：MA5={ind['ma5']}  MA10={ind['ma10']}  MA20={ind['ma20']}  ({ind['ma_position']})
-  MACD：DIF={ind['macd_dif']}  DEA={ind['macd_dea']}  柱={ind['macd_bar']}  {ind['macd_cross']}
-  RSI：{ind['rsi']}
-  近期支撑：{ind['support']}  压力：{ind['resistance']}"""
+  均线：MA5={ind['ma5']}  MA10={ind['ma10']}  MA20={ind['ma20']}{ma60_str}  ({ind['ma_pos']})
+  MACD：DIF={ind['macd_dif']}  DEA={ind['macd_dea']}  柱={ind['macd_bar']}  {ind['macd_cross'] or '无金死叉'}
+  RSI(14)：{ind['rsi']}
+  KDJ：K={ind['kdj_k']}  D={ind['kdj_d']}  J={ind['kdj_j']}
+  布林带：上轨{ind['bb_upper']}  中轨{ind['bb_mid']}  下轨{ind['bb_lower']}  位置{ind['bb_pos']:.0%}
+  量能：相对5日均量×{ind['vol_ratio_5']}（{ind['vol_trend']}）  相对20日均量×{ind['vol_ratio_20']}
+  支撑区：{ind['support']}  压力区：{ind['resistance']}"""
 
-        user_prompt = f"""请对以下股票进行今日跟踪分析：
+        user_prompt = f"""请对以下股票进行今日全方位跟踪分析：
 
 股票：{name}（{code}）
+
 今日行情：
   收盘价：{quote.get('price', 'N/A')}  涨跌幅：{quote.get('change_pct', 0):+.2f}%
+  最高：{quote.get('high', 'N/A')}  最低：{quote.get('low', 'N/A')}  开盘：{quote.get('open', 'N/A')}
   量比：{quote.get('volume_ratio', 0):.2f}  换手率：{quote.get('turnover_rate', 0):.2f}%
-  最高：{quote.get('high', 'N/A')}  最低：{quote.get('low', 'N/A')}{ind_text}
+{ind_text}
 
-请按以下格式输出（250字以内）：
+近期K线（最近5日）：
+{candle_text}
 
-【技术面】均线位置、MACD/RSI状态、趋势判断（2-3句）
+近期消息/公告：
+{news_text}
 
-【今日解读】今日量价关系、异动点评（1-2句）
+请严格按以下格式输出，每段2-3句，总计500字以内：
 
-【持仓建议】持股/减仓/观望/关注买入 + 一句核心理由
+【消息面】解读近期公告/新闻对股价的影响，无消息则说明基本面背景
 
-【明日关注】一个具体的关键价位或信号"""
+【K线过程】描述近5日K线走势节奏、量价配合、今日K线形态含义
 
-    return ai_engine._call(system_prompt, user_prompt, max_tokens=600)
+【技术面】均线多空判断、MACD/KDJ/RSI/布林带综合研判，当前处于什么阶段
+
+【涨跌原因】结合消息面和技术面，分析今日涨跌的核心驱动
+
+【持仓建议】明确给出 持有/减仓/观望/买入 + 核心逻辑（一句话）
+
+【明日关注】给出2个具体价位：关键支撑位 和 突破确认位"""
+
+    return ai_engine._call(system_prompt, user_prompt, max_tokens=900)
 
 
 # ═══════════════════════════════════════════════════════
@@ -233,19 +399,28 @@ class AShareWatchlistTracker:
                     continue
                 quote = row.iloc[0].to_dict()
 
-                hist = _get_history_baostock(code)
-                ind = _calc_indicators(hist)
+                # ts_code 格式 (603993 → 603993.SH)
+                ts_code = f"{code}.SH" if code.startswith("6") else f"{code}.SZ"
 
-                analysis = _ai_analysis(name, code, quote, ind)
+                hist         = _get_history_baostock(code)
+                ind          = _calc_indicators(hist)
+                candle_text  = _describe_candles(hist)
+                news_text    = _fetch_stock_news(code, ts_code)
 
-                change_icon = "🔴" if quote.get("change_pct", 0) > 0 else "🟢" if quote.get("change_pct", 0) < 0 else "⚪"
-                sign = "+" if quote.get("change_pct", 0) > 0 else ""
+                analysis = _ai_analysis(
+                    name, code, quote, ind,
+                    news_text=news_text, candle_text=candle_text
+                )
+
+                chg  = quote.get("change_pct", 0)
+                icon = "🔴" if chg > 0 else "🟢" if chg < 0 else "⚪"
+                sign = "+" if chg > 0 else ""
 
                 msg = (
                     f"📊 自选股跟踪  {name}（{code}）\n"
                     f"━━━━━━━━━━━━━━━━\n"
-                    f"{change_icon} 收盘 {quote.get('price', 'N/A')}  "
-                    f"{sign}{quote.get('change_pct', 0):.2f}%  "
+                    f"{icon} 收盘 {quote.get('price', 'N/A')}  "
+                    f"{sign}{chg:.2f}%  "
                     f"量比 {quote.get('volume_ratio', 0):.2f}  "
                     f"换手 {quote.get('turnover_rate', 0):.2f}%\n\n"
                     f"{analysis}"

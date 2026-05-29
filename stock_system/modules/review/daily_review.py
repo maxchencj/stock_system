@@ -166,11 +166,11 @@ def _ai_review(indices: Dict, stats: Dict, top_stocks: Dict) -> str:
 请严格按以下格式输出，不要改变标签名称：
 
 【涨幅个股原因】
-格式：股票名称|原因（5-10字，如"电力高股息催化"、"地产政策预期博弈"）
+格式：股票名称|原因（15-25字，说明具体催化剂和上涨逻辑，如"受国家电网智能化改造招标消息刺激，电力设备板块集体拉升"、"公司发布业绩预增公告，净利润同比增长超150%"）
 {up_stock_list}
 
 【跌幅个股原因】
-格式：股票名称|原因（5-10字，如"业绩不及预期"、"行业下行周期"）
+格式：股票名称|原因（15-25字，说明具体下跌原因，如"半年报预告显示业绩大幅亏损，主力资金出逃"、"面板行业景气度持续下行，产品价格跌破成本线"）
 {down_stock_list}
 
 【涨停总结】2-3句话概括今日涨停板块分布和核心驱动
@@ -180,8 +180,248 @@ def _ai_review(indices: Dict, stats: Dict, top_stocks: Dict) -> str:
 
     return ai_engine._call(
         "你是资深A股复盘分析师，擅长归纳当日市场主线并给出次日操作建议。",
-        prompt, max_tokens=2000
+        prompt, max_tokens=3500
     )
+
+
+# ─── 多维技术选股 ────────────────────────────────────────────────
+def _fetch_stock_picks(pro, today: str, name_map: Dict) -> List[Dict]:
+    """
+    五维技术分析从全市场选 5 只适合开仓的股票：
+      1. 趋势维度 — MA5/10/20 多头排列
+      2. MACD 维度 — DIF/DEA 金叉或红柱扩张
+      3. RSI 维度  — RSI(14) 处于强势区（45-65）
+      4. 布林维度  — 价格在中轨附近，带宽合理
+      5. 量能维度  — 量比 ≥ 1.5，换手率 1-15%
+    """
+    import pandas as pd
+    from datetime import timedelta
+
+    try:
+        # ── Step 1: 今日全市场快照
+        daily_today = pro.daily(
+            trade_date=today,
+            fields="ts_code,open,high,low,close,vol,amount,pct_chg"
+        )
+        if daily_today is None or daily_today.empty:
+            return []
+
+        try:
+            basic_today = pro.daily_basic(
+                trade_date=today,
+                fields="ts_code,turnover_rate,volume_ratio,pe,pb,circ_mv"
+            )
+            df = daily_today.merge(basic_today, on="ts_code", how="left")
+        except Exception:
+            df = daily_today.copy()
+            df["turnover_rate"] = None
+            df["volume_ratio"]  = None
+            df["pe"] = None
+
+        df = df[~df["ts_code"].apply(_is_excluded_board)].copy()
+
+        # 初筛：价格 ≥ 5，涨幅适中（不追涨停、不跌停），量能放大，有成交
+        df["pct_chg"]       = df["pct_chg"].astype(float)
+        df["volume_ratio"]  = pd.to_numeric(df["volume_ratio"], errors="coerce").fillna(0)
+        df["turnover_rate"] = pd.to_numeric(df["turnover_rate"], errors="coerce").fillna(0)
+        df["pe"]            = pd.to_numeric(df["pe"], errors="coerce")
+
+        df = df[
+            (df["close"] >= 5) &
+            (df["pct_chg"].between(-3, 9)) &
+            (df["volume_ratio"] >= 1.2) &
+            (df["turnover_rate"].between(1, 20)) &
+            (df["amount"].fillna(0) > 0)
+        ].copy()
+
+        if df.empty:
+            return []
+
+        # 初步评分，选 top 30 进行深度历史分析
+        df["init_score"] = (
+            df["volume_ratio"] * 0.4 +
+            df["pct_chg"].clip(0, 5) * 0.3 +
+            (5 / df["turnover_rate"].clip(1, 20)) * 0.3
+        )
+        candidates = df.nlargest(30, "init_score")["ts_code"].tolist()
+
+        # ── Step 2: 逐股历史数据 + 技术指标计算
+        start_date = (
+            datetime.strptime(today, "%Y%m%d") - timedelta(days=100)
+        ).strftime("%Y%m%d")
+
+        results = []
+        for ts_code in candidates:
+            try:
+                hist = pro.daily(
+                    ts_code=ts_code, start_date=start_date, end_date=today,
+                    fields="trade_date,open,high,low,close,vol"
+                )
+                if hist is None or len(hist) < 20:
+                    continue
+                hist = hist.sort_values("trade_date").reset_index(drop=True)
+
+                close = hist["close"].astype(float)
+                vol   = hist["vol"].astype(float)
+                n     = len(close)
+
+                # 均线
+                ma5  = close.rolling(5).mean().iloc[-1]
+                ma10 = close.rolling(10).mean().iloc[-1]
+                ma20 = close.rolling(20).mean().iloc[-1]
+                ma60 = close.rolling(60).mean().iloc[-1] if n >= 60 else None
+                curr = close.iloc[-1]
+
+                # MACD (12, 26, 9)
+                ema12 = close.ewm(span=12, adjust=False).mean()
+                ema26 = close.ewm(span=26, adjust=False).mean()
+                dif   = ema12 - ema26
+                dea   = dif.ewm(span=9, adjust=False).mean()
+                bar   = (dif - dea) * 2
+                dif_now, dea_now   = dif.iloc[-1], dea.iloc[-1]
+                dif_prev, dea_prev = dif.iloc[-2], dea.iloc[-2]
+
+                # RSI (14)
+                delta = close.diff()
+                up = delta.clip(lower=0).rolling(14).mean()
+                dn = (-delta.clip(upper=0)).rolling(14).mean()
+                rsi = float((100 - 100 / (1 + up / dn.replace(0, 1e-9))).iloc[-1])
+
+                # 布林带 (20, 2)
+                bb_mid = close.rolling(20).mean()
+                bb_std = close.rolling(20).std()
+                bb_up  = (bb_mid + 2 * bb_std).iloc[-1]
+                bb_lo  = (bb_mid - 2 * bb_std).iloc[-1]
+                bb_pos = (curr - bb_lo) / (bb_up - bb_lo + 1e-9)  # 0=下轨 1=上轨
+
+                # 量能 (相对 5 日均量)
+                vm5         = vol.rolling(5).mean().iloc[-1]
+                vol_ratio_c = float(vol.iloc[-1] / vm5) if vm5 > 0 else 1.0
+
+                # ── 五维评分
+                score   = 0
+                signals = []
+
+                # 1. 趋势维度 (30分)
+                if curr > ma20:
+                    score += 10; signals.append("价格站上MA20")
+                if ma5 > ma10:
+                    score += 10; signals.append("MA5>MA10")
+                if ma10 > ma20:
+                    score += 10; signals.append("MA多头排列")
+
+                # 2. MACD 维度 (30分)
+                if dif_now > dea_now and dif_prev <= dea_prev:
+                    score += 30; signals.append("MACD今日金叉")
+                elif dif_now > dea_now:
+                    if bar.iloc[-1] > bar.iloc[-2]:
+                        score += 20; signals.append("MACD红柱扩张")
+                    else:
+                        score += 10; signals.append("MACD多头区")
+                elif dif_now > dif_prev and dif_now < 0:
+                    score += 8; signals.append("MACD底部反转")
+
+                # 3. RSI 维度 (20分)
+                if 45 <= rsi <= 62:
+                    score += 20; signals.append(f"RSI强势区({rsi:.0f})")
+                elif 35 <= rsi < 45:
+                    score += 15; signals.append(f"RSI超卖回升({rsi:.0f})")
+                elif 62 < rsi <= 70:
+                    score += 10; signals.append(f"RSI动能充足({rsi:.0f})")
+
+                # 4. 布林维度 (10分)
+                if 0.3 <= bb_pos <= 0.65:
+                    score += 10; signals.append("布林中轨共振")
+                elif bb_pos < 0.2:
+                    score += 5; signals.append("布林下轨支撑")
+
+                # 5. 量能维度 (10分)
+                if vol_ratio_c >= 2.0:
+                    score += 10; signals.append(f"量比{vol_ratio_c:.1f}倍放量")
+                elif vol_ratio_c >= 1.5:
+                    score += 7; signals.append(f"量比{vol_ratio_c:.1f}温和放量")
+
+                row = df[df["ts_code"] == ts_code].iloc[0]
+                results.append({
+                    "ts_code":  ts_code,
+                    "name":     name_map.get(ts_code, ts_code.split(".")[0]),
+                    "price":    round(curr, 2),
+                    "pct_chg":  round(float(row["pct_chg"]), 2),
+                    "ma5":      round(ma5, 2),
+                    "ma10":     round(ma10, 2),
+                    "ma20":     round(ma20, 2),
+                    "rsi":      round(rsi, 1),
+                    "macd_tag": "金叉" if (dif_now > dea_now and dif_prev <= dea_prev)
+                                else ("多头" if dif_now > dea_now else "空头"),
+                    "vol_ratio":   round(vol_ratio_c, 2),
+                    "bb_pos":      round(bb_pos, 2),
+                    "turnover":    round(float(row.get("turnover_rate") or 0), 2),
+                    "score":       score,
+                    "signals":     signals,
+                })
+            except Exception as e:
+                logger.debug(f"技术分析 {ts_code} 失败: {e}")
+                continue
+
+        results.sort(key=lambda x: x["score"], reverse=True)
+        return results[:5]
+
+    except Exception as e:
+        logger.warning(f"多维选股失败: {e}")
+        return []
+
+
+def _ai_picks_analysis(picks: List[Dict]) -> List[str]:
+    """对 5 只精选股票生成 AI 开仓逻辑（买入理由 + 止损参考 + 风险提示）"""
+    if not picks:
+        return []
+
+    stock_list = ""
+    for p in picks:
+        sig_str = " / ".join(p["signals"])
+        stock_list += (
+            f"{p['name']}（{p['ts_code']}）"
+            f" 现价{p['price']} 涨跌{p['pct_chg']:+.2f}%"
+            f" MA5={p['ma5']} MA10={p['ma10']} MA20={p['ma20']}"
+            f" RSI={p['rsi']} MACD={p['macd_tag']}"
+            f" 量比={p['vol_ratio']} 换手={p['turnover']}%"
+            f" 技术信号：{sig_str}\n"
+        )
+
+    prompt = f"""以下是今日技术面评分最高的 5 只A股，请逐一分析：
+
+{stock_list}
+请严格按以下格式逐股输出，不要改变标签名称：
+
+【开仓精选】
+格式：股票名称|开仓逻辑（25-35字，说明核心技术信号和入场理由）|参考止损（如"跌破MA20止损"或具体价格区间）
+{chr(10).join(p['name'] + '|?|?' for p in picks)}"""
+
+    raw = ai_engine._call(
+        "你是专业A股技术分析师，擅长多维度技术分析和精准入场时机判断。",
+        prompt, max_tokens=1200
+    )
+    # 解析每行
+    import re as _re
+    section = _re.search(r"【开仓精选】(.+?)$", raw, _re.S)
+    lines_raw = section.group(1).strip().splitlines() if section else raw.splitlines()
+
+    analysis = {}
+    for line in lines_raw:
+        line = line.strip().lstrip("- 0123456789.")
+        if "|" in line:
+            parts = line.split("|")
+            name = parts[0].strip()
+            logic = parts[1].strip().lstrip("?").strip() if len(parts) > 1 else "—"
+            stop  = parts[2].strip().lstrip("?").strip() if len(parts) > 2 else "—"
+            if name:
+                analysis[name] = (logic, stop)
+
+    result = []
+    for p in picks:
+        logic, stop = analysis.get(p["name"], ("—", "—"))
+        result.append({"logic": logic, "stop": stop})
+    return result
 
 
 # ─── 主推送 ────────────────────────────────────────────────────
@@ -192,11 +432,13 @@ class DailyReview:
         today = datetime.now().strftime("%Y%m%d")
         pro   = _get_pro()
 
-        indices   = _fetch_market_summary()
-        name_map  = _get_name_map(pro, today)
+        indices    = _fetch_market_summary()
+        name_map   = _get_name_map(pro, today)
         top_stocks = _fetch_top_stocks(pro, today, name_map)
-        stats     = _fetch_limit_stats(pro, today, top_stocks.get("daily_df"))
-        ai_text   = _ai_review(indices, stats, top_stocks)
+        stats      = _fetch_limit_stats(pro, today, top_stocks.get("daily_df"))
+        picks      = _fetch_stock_picks(pro, today, name_map)
+        ai_text    = _ai_review(indices, stats, top_stocks)
+        picks_ai   = _ai_picks_analysis(picks)
 
         sec_str = " · ".join(stats.get("sectors", [])) or "—"
         zt, dt, lian = stats.get("zt", 0), stats.get("dt", 0), stats.get("lian", 0)
@@ -251,6 +493,20 @@ class DailyReview:
             reason = down_reasons.get(s["name"], "—")
             down_table += f"| {i+1} | {s['name']} | {s['pct_chg']:+.2f}% | {reason} |\n"
 
+        # ── 精选股票表格
+        picks_block = ""
+        if picks:
+            picks_block = "| # | 股票 | 现价 | 涨跌幅 | 技术信号 | 开仓逻辑 | 参考止损 |\n"
+            picks_block += "|--:|------|-----:|------:|---------|---------|--------|\n"
+            for i, (p, ai) in enumerate(zip(picks, picks_ai or [{}] * len(picks))):
+                sig = " · ".join(p["signals"][:3])  # 最多展示3个信号
+                logic = ai.get("logic", "—") if isinstance(ai, dict) else "—"
+                stop  = ai.get("stop", "—")  if isinstance(ai, dict) else "—"
+                picks_block += (
+                    f"| {i+1} | {p['name']} | {p['price']} "
+                    f"| {p['pct_chg']:+.2f}% | {sig} | {logic} | {stop} |\n"
+                )
+
         # ── 组装 Markdown 文档
         md = f"""# 📋 每日复盘 — {date_str}
 
@@ -261,18 +517,6 @@ class DailyReview:
 ## 📊 大盘指数
 
 {idx_table}
----
-
-## 📈 涨跌停概况
-
-| | 家数 |
-|--|--:|
-| 涨停 | **{zt}** |
-| 跌停 | **{dt}** |
-| 连板 | **{lian}** |
-
-热点板块：{sec_str}
-
 ---
 
 ## 🏆 涨幅前 50
@@ -298,6 +542,14 @@ class DailyReview:
 ## 📌 次日关注
 
 {next_focus}
+
+---
+
+## 🎯 今日开仓精选（5只）
+
+{picks_block if picks_block else "_选股数据获取失败_"}
+
+> 技术评分维度：趋势（MA多头）/ MACD（金叉/扩张）/ RSI（45-65）/ 布林（中轨共振）/ 量能（量比≥1.5）
 """
 
         # 写入临时文件并发送

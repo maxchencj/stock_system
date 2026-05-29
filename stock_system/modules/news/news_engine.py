@@ -138,29 +138,75 @@ def _fetch_us_news(max_items: int = 20) -> List[str]:
 
 # ─────────────────── 市场数据 ───────────────────
 
-def _get_us_indices() -> str:
-    """获取美股+亚太指数表现（字符串格式）"""
+def _get_overnight_market() -> str:
+    """
+    获取隔夜全市场数据：
+      - 美股三大指数 + VIX
+      - 亚太（日经、恒生、韩综）
+      - 大宗商品（WTI原油、黄金、铜）
+      - 美元指数 / 离岸人民币
+    返回带具体点位和涨跌幅的格式化字符串。
+    """
     try:
         import yfinance as yf
-        symbols = [("^GSPC", "标普500"), ("^IXIC", "纳斯达克"), ("^DJI", "道琼斯"),
-                   ("^N225", "日经225"), ("^HSI", "恒生指数")]
+
+        groups = {
+            "美股": [
+                ("^GSPC",  "标普500"),
+                ("^IXIC",  "纳斯达克"),
+                ("^DJI",   "道琼斯"),
+                ("^VIX",   "VIX恐慌指数"),
+            ],
+            "亚太": [
+                ("^N225",  "日经225"),
+                ("^HSI",   "恒生指数"),
+                ("^KS11",  "韩国综合"),
+            ],
+            "大宗商品": [
+                ("CL=F",   "WTI原油($/桶)"),
+                ("GC=F",   "黄金($/盎司)"),
+                ("HG=F",   "铜($/磅)"),
+            ],
+            "外汇": [
+                ("DX-Y.NYB", "美元指数"),
+                ("CNH=X",    "离岸人民币"),
+            ],
+        }
+
         lines = []
-        for sym, name in symbols:
-            try:
-                hist = yf.Ticker(sym).history(period="2d")
-                if len(hist) >= 2:
+        for group, symbols in groups.items():
+            group_lines = []
+            for sym, name in symbols:
+                try:
+                    hist = yf.Ticker(sym).history(period="2d")
+                    if len(hist) < 2:
+                        continue
                     prev = float(hist["Close"].iloc[-2])
                     last = float(hist["Close"].iloc[-1])
-                    chg = round((last - prev) / prev * 100, 2)
-                    sign = "+" if chg > 0 else ""
-                    icon = "🔴" if chg > 0 else "🟢" if chg < 0 else "⚪"
-                    lines.append(f"  {icon} {name} {sign}{chg}%")
-            except Exception:
-                pass
+                    chg  = round((last - prev) / prev * 100, 2)
+                    sign = "+" if chg >= 0 else ""
+                    arrow = "↑" if chg > 0 else ("↓" if chg < 0 else "→")
+                    import math
+                    if math.isnan(last) or math.isnan(chg):
+                        continue
+                    group_lines.append(
+                        f"  {name} {last:.2f}  {arrow}{sign}{chg}%"
+                    )
+                except Exception:
+                    pass
+            if group_lines:
+                lines.append(f"[{group}]")
+                lines.extend(group_lines)
+
         return "\n".join(lines) if lines else "  数据获取失败"
     except Exception as e:
-        logger.warning(f"获取美股指数失败: {e}")
+        logger.warning(f"获取隔夜市场数据失败: {e}")
         return "  数据获取失败"
+
+
+def _get_us_indices() -> str:
+    """兼容旧调用，委托给新函数"""
+    return _get_overnight_market()
 
 
 def _get_a_indices() -> str:
@@ -219,7 +265,7 @@ def _get_us_premarket() -> str:
 # ─────────────────── AI 生成 ───────────────────
 
 def _ai_brief(system_prompt: str, user_prompt: str) -> str:
-    return ai_engine._call(system_prompt, user_prompt, max_tokens=1000)
+    return ai_engine._call(system_prompt, user_prompt, max_tokens=2500)
 
 
 def _build_watchlist_context(watchlist: Dict[str, str]) -> str:
@@ -235,104 +281,80 @@ def _build_watchlist_context(watchlist: Dict[str, str]) -> str:
 class AShareNewsEngine:
 
     def push_morning(self):
-        """A股早报 8:15"""
-        logger.info("生成A股早报...")
+        """A股综合早报 8:00 — 隔夜全市场 + 精选要闻 + 自选股关联 + 三指数开盘研判"""
+        logger.info("生成A股综合早报...")
         try:
-            us_data = _get_us_indices()
-            cn_news = _fetch_cn_news()
+            overnight = _get_overnight_market()
+            cn_news   = _fetch_cn_news(max_items=30)
             watchlist = _load_watchlist(WATCHLIST_FILE)
-            wl_ctx = _build_watchlist_context(watchlist)
-            date_str = datetime.now().strftime("%m/%d")
+            date_str  = datetime.now().strftime("%Y-%m-%d")
 
-            system_prompt = "你是专业的A股财经分析师，擅长撰写简洁有料的每日财经早报。"
-            user_prompt = f"""请根据以下信息，生成今日A股财经早报（{date_str}）：
+            wl_lines = [f"{name}（{code}）" for code, name in watchlist.items()]
+            wl_section = (
+                "\n【自选股列表】\n" + "、".join(wl_lines)
+                if wl_lines else ""
+            )
 
-【隔夜美股及亚太指数】
-{us_data}
+            news_block = "\n".join(f"- {n}" for n in cn_news)
 
-【今日财经新闻】（从中筛选3-5条最相关A股市场的）
-{chr(10).join(f'- {n}' for n in cn_news)}
+            system_prompt = (
+                "你是资深A股策略研究员。所有判断必须来自提供的实际数据，"
+                "禁止添加数据中不存在的事实或无依据的主观猜测。"
+                "风格：专业、精准、有逻辑链条，避免套话。"
+            )
+            user_prompt = f"""根据以下真实数据，生成今日A股综合早报（{date_str}）：
 
-【我的A股自选股】
-{wl_ctx}
+【隔夜全市场数据（含具体点位和涨跌幅）】
+{overnight}
 
-请按以下格式输出（300字以内，简洁有料）：
+【候选财经新闻（待筛选，原始条目）】
+{news_block}
+{wl_section}
 
-🌏 隔夜市场
-（美股和亚太市场关键表现，1-2句，说明对今日A股的影响方向）
+━━ 输出格式要求（严格遵守，尽量详尽，不设字数上限）━━
 
-📋 今日要闻
-（3-4条精选新闻，每条一行，格式：• 内容）
+▍隔夜市场
+逐一列出美股三大指数、VIX、亚太指数、大宗商品（原油/黄金/铜）、美元指数的具体收盘点位和涨跌幅。
+提炼隔夜 2-3 个核心驱动因素（需引用具体数据支撑）。
+最后一句说明外盘整体对今日A股开盘情绪的传导方向（偏多/偏空/分化）。
 
-⭐ 自选股关联
-（如有新闻涉及自选股所在行业/供应链，重点标注；无则写"暂无直接关联消息"）
+▍精选要闻（严格筛选，8-10 条，越充分越好）
+保留标准：政策法规落地、宏观数据发布（PMI/CPI/利率等）、产业链重大事件、龙头公司业绩/公告、重要机构观点。
+删除：情绪性标题、无量化依据的预测、娱乐财经、与A股板块无直接关联的境外事件。
+每条格式（编号 + 标签换行 + 内容，条目之间空一行）：
+① 板块标签
+具体事实 + 对A股相关板块的影响逻辑（40字以内）
 
-💡 开盘研判
-（一句话：今日A股整体情绪偏多/偏空/中性，关注哪个方向）"""
+② 板块标签
+具体事实 + 对A股相关板块的影响逻辑（40字以内）
+……以此类推
+
+▍自选股关联（仅当要闻与自选股所属行业/产业链有直接关联时输出，否则省略整段）
+写明：哪条新闻 → 影响哪个业务环节 → 对股价的预判方向，尽量具体。
+
+▍开盘研判
+分三个指数各一行，每行引用上方具体数字或事件作为依据：
+上证指数：[偏多/偏空/震荡]——[具体依据]
+深证成指：[偏多/偏空/震荡]——[具体依据]
+创业板指：[偏多/偏空/震荡]——[具体依据]"""
 
             content = _ai_brief(system_prompt, user_prompt)
             if not content:
                 return
 
             msg = (
-                f"📰 A股早报  {date_str} 08:15\n"
+                f"📰 A股早报  {date_str}\n"
                 f"━━━━━━━━━━━━━━━━\n"
                 f"{content}"
             )
             notifier.telegram.send(msg)
-            logger.info("A股早报推送完成")
+            logger.info("A股综合早报推送完成")
         except Exception as e:
-            logger.error(f"A股早报失败: {e}", exc_info=True)
+            logger.error(f"A股综合早报失败: {e}", exc_info=True)
 
     def push_evening(self):
-        """A股晚报 20:15"""
-        logger.info("生成A股晚报...")
-        try:
-            a_data = _get_a_indices()
-            cn_news = _fetch_cn_news()
-            watchlist = _load_watchlist(WATCHLIST_FILE)
-            wl_ctx = _build_watchlist_context(watchlist)
-            date_str = datetime.now().strftime("%m/%d")
-
-            system_prompt = "你是专业的A股财经分析师，擅长撰写每日收盘后的市场复盘简报。"
-            user_prompt = f"""请根据以下信息，生成今日A股财经晚报（{date_str}）：
-
-【今日A股指数收盘】
-{a_data}
-
-【今日财经新闻】（从中筛选3-5条最相关A股市场的）
-{chr(10).join(f'- {n}' for n in cn_news)}
-
-【我的A股自选股】
-{wl_ctx}
-
-请按以下格式输出（300字以内）：
-
-📊 今日A股复盘
-（大盘走势一句话总结，成交量和情绪判断）
-
-📋 今日要闻
-（3-4条精选新闻，格式：• 内容）
-
-⭐ 自选股关联
-（如有新闻涉及自选股所在行业/供应链，重点标注；无则写"暂无直接关联消息"）
-
-🔮 明日关注
-（一句话：明日值得关注的板块或事件）"""
-
-            content = _ai_brief(system_prompt, user_prompt)
-            if not content:
-                return
-
-            msg = (
-                f"📰 A股晚报  {date_str} 20:15\n"
-                f"━━━━━━━━━━━━━━━━\n"
-                f"{content}"
-            )
-            notifier.telegram.send(msg)
-            logger.info("A股晚报推送完成")
-        except Exception as e:
-            logger.error(f"A股晚报失败: {e}", exc_info=True)
+        """已合并至早报，保留此方法供历史调用兼容，不再执行任何操作。"""
+        logger.info("晚报已合并至早报，跳过")
 
 
 # ═══════════════════════════════════════════════════════
