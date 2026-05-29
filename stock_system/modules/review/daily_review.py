@@ -209,43 +209,43 @@ class DailyReview:
         indices    = _fetch_market_summary()
         limit_data = _fetch_limit_data(today)
         top_stocks = _fetch_top_stocks(today, limit_data["zt_df"], limit_data["dt_df"])
+        ai_text    = _ai_review(indices, limit_data, top_stocks)
 
-        ai_text = _ai_review(indices, limit_data, top_stocks)
-
-        # 大盘指数
-        idx_lines = "\n".join(
-            f"  {name}: {d['price']:.2f}  {d['pct']:+.2f}%"
+        # 大盘指数：单行紧凑
+        idx_line = "  ".join(
+            f"{name} {d['price']:.0f}（{d['pct']:+.2f}%）"
             for name, d in indices.items()
-        ) if indices else "  数据获取中..."
+        ) if indices else "数据获取中..."
 
-        # 涨幅榜 Top50
-        up_list = top_stocks.get("up", [])
-        up_lines = "\n".join(
-            f"  {i+1:2d}. {s['name']}  {s['pct_chg']:+.2f}%{'🔒' if s['is_zt'] else ''}"
-            for i, s in enumerate(up_list)
-        ) if up_list else "  暂无数据"
+        # 涨跌停行
+        sec_str = " · ".join(limit_data.get("sectors", [])) or "—"
+        zt, dt, lian = limit_data.get("zt", 0), limit_data.get("dt", 0), limit_data.get("lian", 0)
 
-        # 跌幅榜 Top10
+        # 股票榜：每行 3 只，格式 "名称+涨跌幅🔒"
+        def _rows(stocks: list, per_row: int = 3) -> str:
+            if not stocks:
+                return "  暂无数据"
+            items = [
+                f"{s['name']} {s['pct_chg']:+.1f}%{'🔒' if s.get('is_zt') or s.get('is_dt') else ''}"
+                for s in stocks
+            ]
+            lines = []
+            for i in range(0, len(items), per_row):
+                lines.append("  " + "   ".join(items[i:i + per_row]))
+            return "\n".join(lines)
+
+        up_list   = top_stocks.get("up", [])
         down_list = top_stocks.get("down", [])
-        down_lines = "\n".join(
-            f"  {i+1:2d}. {s['name']}  {s['pct_chg']:+.2f}%{'🔒' if s['is_dt'] else ''}"
-            for i, s in enumerate(down_list)
-        ) if down_list else "  暂无数据"
-
-        sec_str = "  ".join(limit_data.get("sectors", [])) or "无"
 
         msg = (
             f"📋 每日复盘 — {datetime.now().strftime('%Y-%m-%d')}\n"
-            f"（主板 + 北交所，已排除创业板/科创板）\n"
+            f"（主板 + 北交所 | 已排除创业板/科创板）\n"
             f"━━━━━━━━━━━━━━━━\n"
-            f"📊 大盘指数\n{idx_lines}\n\n"
-            f"📈 今日涨跌停\n"
-            f"  涨停: {limit_data.get('zt', 0)}家  "
-            f"跌停: {limit_data.get('dt', 0)}家  "
-            f"连板: {limit_data.get('lian', 0)}家\n"
-            f"  热点行业: {sec_str}\n\n"
-            f"🏆 涨幅榜 Top50\n{up_lines}\n\n"
-            f"💔 跌幅榜 Top10\n{down_lines}\n"
+            f"📊 {idx_line}\n\n"
+            f"📈 涨停 {zt}家  跌停 {dt}家  连板 {lian}家\n"
+            f"🔥 热点板块：{sec_str}\n\n"
+            f"🏆 涨幅前50\n{_rows(up_list)}\n\n"
+            f"💔 跌幅前10\n{_rows(down_list)}\n"
             f"━━━━━━━━━━━━━━━━\n"
             f"{ai_text}"
         )
