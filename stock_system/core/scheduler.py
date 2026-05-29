@@ -179,20 +179,6 @@ class TaskScheduler:
 
         # ── Phase 2：监控增强 ──────────────────────────────
 
-        # 大盘情绪雷达（交易日 15:30）
-        self.scheduler.add_job(
-            self.sentiment_task,
-            CronTrigger(hour=15, minute=30, day_of_week="mon-fri"),
-            id="sentiment", name="大盘情绪雷达", replace_existing=True
-        )
-
-        # 全市场异动扫描（交易日 15:45）
-        self.scheduler.add_job(
-            self.market_scan_task,
-            CronTrigger(hour=15, minute=45, day_of_week="mon-fri"),
-            id="market_scan", name="全市场异动扫描", replace_existing=True
-        )
-
         # 宏观经济日历（每周一 8:45）
         self.scheduler.add_job(
             self.macro_calendar_task,
@@ -510,24 +496,6 @@ class TaskScheduler:
             logger.error(f"打新提醒任务失败: {e}", exc_info=True)
 
     # ── Phase 2 任务 ──────────────────────────────────
-
-    def sentiment_task(self):
-        """大盘情绪雷达：交易日 15:30"""
-        logger.info("执行大盘情绪雷达")
-        try:
-            from modules.sentiment.sentiment_engine import sentiment_engine
-            sentiment_engine.run_daily_push()
-        except Exception as e:
-            logger.error(f"大盘情绪雷达失败: {e}", exc_info=True)
-
-    def market_scan_task(self):
-        """全市场异动扫描：交易日 15:45"""
-        logger.info("执行全市场异动扫描")
-        try:
-            from modules.scanner.market_scanner import market_scanner
-            market_scanner.run_daily_scan()
-        except Exception as e:
-            logger.error(f"全市场异动扫描失败: {e}", exc_info=True)
 
     def macro_calendar_task(self):
         """宏观经济日历：每周一 8:45"""
