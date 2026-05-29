@@ -193,13 +193,6 @@ class TaskScheduler:
             id="market_scan", name="全市场异动扫描", replace_existing=True
         )
 
-        # 北向资金深度追踪（交易日 17:15）
-        self.scheduler.add_job(
-            self.north_flow_task,
-            CronTrigger(hour=17, minute=15, day_of_week="mon-fri"),
-            id="north_flow", name="北向资金追踪", replace_existing=True
-        )
-
         # 宏观经济日历（每周一 8:45）
         self.scheduler.add_job(
             self.macro_calendar_task,
@@ -535,15 +528,6 @@ class TaskScheduler:
             market_scanner.run_daily_scan()
         except Exception as e:
             logger.error(f"全市场异动扫描失败: {e}", exc_info=True)
-
-    def north_flow_task(self):
-        """北向资金深度追踪：交易日 17:15"""
-        logger.info("执行北向资金追踪")
-        try:
-            from modules.sentiment.north_flow import north_flow_tracker
-            north_flow_tracker.run_daily_push()
-        except Exception as e:
-            logger.error(f"北向资金追踪失败: {e}", exc_info=True)
 
     def macro_calendar_task(self):
         """宏观经济日历：每周一 8:45"""
