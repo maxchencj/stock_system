@@ -172,7 +172,7 @@ def _ai_review(indices: Dict, stats: Dict, top_stocks: Dict) -> str:
 
     return ai_engine._call(
         "你是资深A股复盘分析师，擅长归纳当日市场主线并给出次日操作建议。",
-        prompt, max_tokens=600
+        prompt, max_tokens=800
     )
 
 
@@ -190,41 +190,58 @@ class DailyReview:
         stats     = _fetch_limit_stats(pro, today, top_stocks.get("daily_df"))
         ai_text   = _ai_review(indices, stats, top_stocks)
 
-        # 大盘：单行紧凑
-        idx_line = "  ".join(
-            f"{name} {d['price']:.0f}（{d['pct']:+.2f}%）"
-            for name, d in indices.items()
-        ) if indices else "数据获取中..."
-
-        # 股票榜：每行 3 只
-        def _rows(stocks: List, per_row: int = 3) -> str:
-            if not stocks:
-                return "  暂无数据"
-            items = [
-                f"{s['name']} {s['pct_chg']:+.1f}%{'🔒' if s.get('is_zt') or s.get('is_dt') else ''}"
-                for s in stocks
-            ]
-            return "\n".join(
-                "  " + "   ".join(items[i:i + per_row])
-                for i in range(0, len(items), per_row)
-            )
-
         sec_str = " · ".join(stats.get("sectors", [])) or "—"
         zt, dt, lian = stats.get("zt", 0), stats.get("dt", 0), stats.get("lian", 0)
+        up_list   = top_stocks.get("up", [])
+        down_list = top_stocks.get("down", [])
 
-        msg = (
+        # 大盘：两行
+        idx_lines = "\n".join(
+            f"  {name}  {d['price']:.2f}  {d['pct']:+.2f}%"
+            for name, d in indices.items()
+        ) if indices else "  数据获取中..."
+
+        # 涨幅：Top10 带百分比 + 剩余涨停只列名字（5个/行）
+        top10_lines = "\n".join(
+            f"  {i+1:2d}. {s['name']}  {s['pct_chg']:+.2f}%{'🔒' if s['is_zt'] else ''}"
+            for i, s in enumerate(up_list[:10])
+        ) if up_list else "  暂无数据"
+
+        rest_zt = [s["name"] for s in up_list[10:] if s["is_zt"]]
+        rest_near = [
+            f"{s['name']} {s['pct_chg']:+.1f}%"
+            for s in up_list[10:] if not s["is_zt"]
+        ]
+        rest_lines = ""
+        if rest_zt:
+            rows = [" · ".join(rest_zt[i:i+5]) for i in range(0, len(rest_zt), 5)]
+            rest_lines += f"\n  其余涨停（{len(rest_zt)}只）：\n" + "\n".join(f"  {r}" for r in rows)
+        if rest_near:
+            rest_lines += "\n  近涨停：" + "  ".join(rest_near)
+
+        # 跌幅：每行两只
+        down_lines = "\n".join(
+            f"  {s['name']}  {s['pct_chg']:+.2f}%{'🔒' if s['is_dt'] else ''}"
+            for s in down_list
+        ) if down_list else "  暂无数据"
+
+        # 消息1：行情数据
+        msg1 = (
             f"📋 每日复盘 — {datetime.now().strftime('%Y-%m-%d')}\n"
             f"（主板 + 北交所 | 已排除创业板/科创板）\n"
             f"━━━━━━━━━━━━━━━━\n"
-            f"📊 {idx_line}\n\n"
+            f"📊 大盘指数\n{idx_lines}\n\n"
             f"📈 涨停 {zt}家  跌停 {dt}家  连板 {lian}家\n"
             f"🔥 热点板块：{sec_str}\n\n"
-            f"🏆 涨幅前50\n{_rows(top_stocks.get('up', []))}\n\n"
-            f"💔 跌幅前10\n{_rows(top_stocks.get('down', []))}\n"
-            f"━━━━━━━━━━━━━━━━\n"
-            f"{ai_text}"
+            f"🏆 涨幅前50（Top10详情）\n{top10_lines}{rest_lines}\n\n"
+            f"💔 跌幅前10\n{down_lines}"
         )
-        notifier.telegram.send(msg)
+
+        # 消息2：AI 分析（单独发送，不被行情数据稀释）
+        msg2 = f"━━━━━━━━━━━━━━━━\n{ai_text}"
+
+        notifier.telegram.send(msg1)
+        notifier.telegram.send(msg2)
         logger.info("每日复盘已推送")
 
 
