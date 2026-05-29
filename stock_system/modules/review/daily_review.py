@@ -1,6 +1,9 @@
 """
 每日复盘模板 - 交易日 21:00 自动生成当日复盘
-推送内容：大盘指数 / 涨幅前50 / 跌幅前10（排除创业板/科创板）/ 涨跌停原因分析
+数据源：全部使用 Tushare（不依赖 AKShare）
+  - 大盘指数：腾讯 Finance
+  - 涨停/跌停统计 + 名称：Tushare limit_list_d
+  - 全市场涨跌幅排名：Tushare daily
 推送频率：交易日 21:00 → Telegram
 """
 import os
@@ -23,14 +26,13 @@ def _is_excluded_board(ts_code: str) -> bool:
     )
 
 
-def _get_tushare_pro():
+def _get_pro():
     import tushare as ts
-    token = os.getenv("TUSHARE_TOKEN", "")
-    return ts.pro_api(token)
+    return ts.pro_api(os.getenv("TUSHARE_TOKEN", ""))
 
 
 def _fetch_market_summary() -> Dict:
-    """大盘指数（腾讯Finance）"""
+    """大盘指数（腾讯 Finance）"""
     try:
         import requests
         symbols = {
@@ -42,19 +44,20 @@ def _fetch_market_summary() -> Dict:
         codes = ",".join(f"s_{c}" for c in symbols)
         resp = requests.get(f"http://qt.gtimg.cn/q={codes}", timeout=8)
         resp.encoding = "gbk"
+        # s_xxx 简化接口格式: exchange~名称~代码~现价~涨跌额~涨跌幅~...
         indices = {}
         for line in resp.text.strip().split("\n"):
             if "~" not in line:
                 continue
             parts = line.split("~")
-            if len(parts) < 35:
+            if len(parts) < 6:
                 continue
             for code, name in symbols.items():
                 if code in line:
                     try:
                         indices[name] = {
                             "price": float(parts[3]),
-                            "pct": float(parts[32]),
+                            "pct": float(parts[5]),
                         }
                     except Exception:
                         pass
@@ -64,74 +67,94 @@ def _fetch_market_summary() -> Dict:
         return {}
 
 
-def _fetch_limit_stats() -> Dict:
-    """涨跌停统计（AKShare）"""
+def _fetch_limit_data(today: str) -> Dict:
+    """
+    用 Tushare limit_list_d 获取涨停/跌停数据
+    返回：涨停列表、跌停列表、统计数字
+    """
     try:
-        import akshare as ak
-        today = datetime.now().strftime("%Y%m%d")
-        zt_df = ak.stock_zt_pool_em(date=today)
-        dt_df = ak.stock_zt_pool_dtgc_em(date=today)
-        zt_count = len(zt_df) if zt_df is not None else 0
-        dt_count = len(dt_df) if dt_df is not None else 0
+        pro = _get_pro()
+        fields = "ts_code,name,industry,close,pct_chg,limit_times,open_times,first_time"
 
+        zt_df = pro.limit_list_d(trade_date=today, limit_type="U", fields=fields)
+        dt_df = pro.limit_list_d(trade_date=today, limit_type="D", fields=fields)
+
+        zt_df = zt_df if zt_df is not None else __import__("pandas").DataFrame()
+        dt_df = dt_df if dt_df is not None else __import__("pandas").DataFrame()
+
+        # 过滤创业板 / 科创板
+        if not zt_df.empty:
+            zt_df = zt_df[~zt_df["ts_code"].apply(_is_excluded_board)].copy()
+        if not dt_df.empty:
+            dt_df = dt_df[~dt_df["ts_code"].apply(_is_excluded_board)].copy()
+
+        # 统计
+        zt_count = len(zt_df)
+        dt_count = len(dt_df)
         lian_count = 0
-        top_sectors = []
-        if zt_df is not None and not zt_df.empty:
-            if "连板数" in zt_df.columns:
-                lian_count = int((zt_df["连板数"] >= 2).sum())
-            if "所属行业" in zt_df.columns:
-                top_sectors = zt_df["所属行业"].value_counts().head(3).index.tolist()
-        return {"zt": zt_count, "dt": dt_count, "lian": lian_count, "sectors": top_sectors}
+        top_sectors: List[str] = []
+        if not zt_df.empty:
+            if "limit_times" in zt_df.columns:
+                lian_count = int((zt_df["limit_times"] >= 2).sum())
+            if "industry" in zt_df.columns:
+                top_sectors = zt_df["industry"].value_counts().head(3).index.tolist()
+
+        return {
+            "zt_df": zt_df,
+            "dt_df": dt_df,
+            "zt": zt_count,
+            "dt": dt_count,
+            "lian": lian_count,
+            "sectors": top_sectors,
+        }
     except Exception as e:
         logger.warning(f"获取涨跌停数据失败: {e}")
-        return {"zt": 0, "dt": 0, "lian": 0, "sectors": []}
+        import pandas as pd
+        return {"zt_df": pd.DataFrame(), "dt_df": pd.DataFrame(),
+                "zt": 0, "dt": 0, "lian": 0, "sectors": []}
 
 
-def _fetch_top_stocks() -> Dict:
+def _fetch_top_stocks(today: str, zt_df, dt_df) -> Dict:
     """
-    用 Tushare 获取今日涨幅前50 / 跌幅前10
-    排除创业板（300xxx/301xxx）和科创板（688xxx/689xxx）
-    同时标记涨停/跌停股
+    涨幅前50 / 跌幅前10（主板 + 北交所，排除创业板/科创板）
+    价格数据来自 Tushare daily，名称来自 limit_list_d（涨跌停股有名称，其余显示代码）
+    过滤新股首日（涨幅 > 30%）
     """
     try:
-        import pandas as pd
-        pro = _get_tushare_pro()
-        today = datetime.now().strftime("%Y%m%d")
-
-        # 日行情
-        daily = pro.daily(trade_date=today, fields="ts_code,close,pct_chg,vol,amount")
+        pro = _get_pro()
+        daily = pro.daily(trade_date=today, fields="ts_code,close,pct_chg")
         if daily is None or daily.empty:
             return {}
 
-        # 股票基本信息（名称）
-        basic = pro.stock_basic(
-            exchange="", list_status="L", fields="ts_code,name"
+        # 名称映射：仅涨停/跌停股有名称，其余用 6 位代码
+        name_map: Dict[str, str] = {}
+        for df in [zt_df, dt_df]:
+            if not df.empty and "name" in df.columns:
+                name_map.update(dict(zip(df["ts_code"], df["name"])))
+
+        daily = daily[~daily["ts_code"].apply(_is_excluded_board)].copy()
+        daily = daily[daily["close"] > 0]
+        daily["pct_chg"] = daily["pct_chg"].astype(float)
+        # 过滤新股首日 / 长期停牌复牌（涨跌幅超 ±30%）
+        daily = daily[(daily["pct_chg"] <= 30) & (daily["pct_chg"] >= -30)]
+
+        daily["is_zt"] = daily["pct_chg"] >= 9.9
+        daily["is_dt"] = daily["pct_chg"] <= -9.9
+        daily["name"] = daily["ts_code"].map(name_map).fillna(
+            daily["ts_code"].str.split(".").str[0]
         )
-        df = daily.merge(basic, on="ts_code", how="left")
-
-        # 过滤创业板 / 科创板
-        df = df[~df["ts_code"].apply(_is_excluded_board)].copy()
-
-        # 过滤无效（停牌、ST 等）
-        df = df[df["close"] > 0]
-        df["pct_chg"] = df["pct_chg"].astype(float)
-
-        # 涨停线 ≈ 9.9%，跌停线 ≈ -9.9%（北交所 ±30% 不计）
-        df["is_zt"] = df["pct_chg"] >= 9.9
-        df["is_dt"] = df["pct_chg"] <= -9.9
 
         cols = ["ts_code", "name", "close", "pct_chg", "is_zt", "is_dt"]
-        top_up   = df.nlargest(50, "pct_chg")[cols].to_dict("records")
-        top_down = df.nsmallest(10, "pct_chg")[cols].to_dict("records")
-
+        top_up   = daily.nlargest(50, "pct_chg")[cols].to_dict("records")
+        top_down = daily.nsmallest(10, "pct_chg")[cols].to_dict("records")
         return {"up": top_up, "down": top_down}
 
     except Exception as e:
-        logger.warning(f"Tushare 涨跌榜获取失败: {e}")
+        logger.warning(f"获取涨跌榜失败: {e}")
         return {}
 
 
-def _ai_review(indices: Dict, limit_stats: Dict, top_stocks: Dict) -> str:
+def _ai_review(indices: Dict, limit_data: Dict, top_stocks: Dict) -> str:
     system_prompt = (
         "你是资深A股复盘分析师，擅长从涨停跌停个股中归纳当日市场主线，"
         "并给出次日操作建议。"
@@ -141,16 +164,14 @@ def _ai_review(indices: Dict, limit_stats: Dict, top_stocks: Dict) -> str:
         f"{k} {v['pct']:+.2f}%" for k, v in indices.items()
     ) if indices else "数据获取失败"
 
-    sec_str = "、".join(limit_stats.get("sectors", [])) or "无"
+    sec_str = "、".join(limit_data.get("sectors", [])) or "无"
 
     up_list   = top_stocks.get("up", [])
     down_list = top_stocks.get("down", [])
 
-    # 涨停股列表（用于让AI分析原因）
     zt_names = [s["name"] for s in up_list if s.get("is_zt")]
     dt_names = [s["name"] for s in down_list if s.get("is_dt")]
 
-    # 涨幅前10用于prompt（节省token）
     up_brief = "  ".join(
         f"{s['name']}{s['pct_chg']:+.1f}%{'🔒' if s['is_zt'] else ''}"
         for s in up_list[:10]
@@ -160,25 +181,21 @@ def _ai_review(indices: Dict, limit_stats: Dict, top_stocks: Dict) -> str:
         for s in down_list[:5]
     ) or "无"
 
-    zt_str = "、".join(zt_names[:15]) if zt_names else "无"
-    dt_str = "、".join(dt_names[:10]) if dt_names else "无"
-
     user_prompt = f"""今日A股复盘数据（已排除创业板/科创板）：
 
 【大盘指数】{idx_str}
-【涨跌停】涨停{limit_stats.get('zt', 0)}家 / 跌停{limit_stats.get('dt', 0)}家 / 连板{limit_stats.get('lian', 0)}家
+【涨跌停】涨停{limit_data.get('zt', 0)}家 / 跌停{limit_data.get('dt', 0)}家 / 连板{limit_data.get('lian', 0)}家
 【涨停热点行业】{sec_str}
 【涨幅榜Top10（主板+北交所）】{up_brief}
 【跌幅榜Top5（主板+北交所）】{down_brief}
-【今日涨停股（主板）】{zt_str}
-【今日跌停股（主板）】{dt_str}
+【今日涨停股（主板）】{"、".join(zt_names[:15]) or "无"}
+【今日跌停股（主板）】{"、".join(dt_names[:10]) or "无"}
 
-请输出以下四段分析（每段80字以内，直接写内容，不要加markdown标题）：
-
+请输出以下四段分析（每段80字以内）：
 【今日总结】市场整体情绪（强/弱/分化）及核心逻辑
 【涨停原因】今日主板涨停股的共性原因，哪些是主线，哪些是题材炒作
 【跌停原因】今日主板跌停股的共性原因或个股逻辑
-【次日关注】明天重点方向（反弹/追板/观望），给出具体板块"""
+【次日关注】明天重点方向，给出具体板块"""
 
     return ai_engine._call(system_prompt, user_prompt, max_tokens=600)
 
@@ -187,45 +204,35 @@ class DailyReview:
 
     def run_daily_push(self):
         logger.info("执行每日复盘")
-        indices    = _fetch_market_summary()
-        limit_stats = _fetch_limit_stats()
-        top_stocks  = _fetch_top_stocks()
+        today = datetime.now().strftime("%Y%m%d")
 
-        ai_text = _ai_review(indices, limit_stats, top_stocks)
+        indices    = _fetch_market_summary()
+        limit_data = _fetch_limit_data(today)
+        top_stocks = _fetch_top_stocks(today, limit_data["zt_df"], limit_data["dt_df"])
+
+        ai_text = _ai_review(indices, limit_data, top_stocks)
 
         # 大盘指数
-        if indices:
-            idx_lines = "\n".join(
-                f"  {name}: {d['price']:.2f}  {d['pct']:+.2f}%"
-                for name, d in indices.items()
-            )
-        else:
-            idx_lines = "  数据获取中..."
+        idx_lines = "\n".join(
+            f"  {name}: {d['price']:.2f}  {d['pct']:+.2f}%"
+            for name, d in indices.items()
+        ) if indices else "  数据获取中..."
 
-        # 涨幅榜 Top50（每行: 序号 名称 涨跌幅，涨停加🔒）
+        # 涨幅榜 Top50
         up_list = top_stocks.get("up", [])
-        if up_list:
-            up_lines = "\n".join(
-                f"  {i+1:2d}. {s['name']}  {s['pct_chg']:+.2f}%{'🔒' if s['is_zt'] else ''}"
-                for i, s in enumerate(up_list)
-            )
-        else:
-            up_lines = "  暂无数据"
+        up_lines = "\n".join(
+            f"  {i+1:2d}. {s['name']}  {s['pct_chg']:+.2f}%{'🔒' if s['is_zt'] else ''}"
+            for i, s in enumerate(up_list)
+        ) if up_list else "  暂无数据"
 
         # 跌幅榜 Top10
         down_list = top_stocks.get("down", [])
-        if down_list:
-            down_lines = "\n".join(
-                f"  {i+1:2d}. {s['name']}  {s['pct_chg']:+.2f}%{'🔒' if s['is_dt'] else ''}"
-                for i, s in enumerate(down_list)
-            )
-        else:
-            down_lines = "  暂无数据"
+        down_lines = "\n".join(
+            f"  {i+1:2d}. {s['name']}  {s['pct_chg']:+.2f}%{'🔒' if s['is_dt'] else ''}"
+            for i, s in enumerate(down_list)
+        ) if down_list else "  暂无数据"
 
-        sec_str = "  ".join(limit_stats.get("sectors", [])) or "无"
-        zt = limit_stats.get("zt", 0)
-        dt = limit_stats.get("dt", 0)
-        lian = limit_stats.get("lian", 0)
+        sec_str = "  ".join(limit_data.get("sectors", [])) or "无"
 
         msg = (
             f"📋 每日复盘 — {datetime.now().strftime('%Y-%m-%d')}\n"
@@ -233,7 +240,9 @@ class DailyReview:
             f"━━━━━━━━━━━━━━━━\n"
             f"📊 大盘指数\n{idx_lines}\n\n"
             f"📈 今日涨跌停\n"
-            f"  涨停: {zt}家  跌停: {dt}家  连板: {lian}家\n"
+            f"  涨停: {limit_data.get('zt', 0)}家  "
+            f"跌停: {limit_data.get('dt', 0)}家  "
+            f"连板: {limit_data.get('lian', 0)}家\n"
             f"  热点行业: {sec_str}\n\n"
             f"🏆 涨幅榜 Top50\n{up_lines}\n\n"
             f"💔 跌幅榜 Top10\n{down_lines}\n"

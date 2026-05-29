@@ -1,5 +1,14 @@
 # 股票智能分析系统 - Claude 开发指南
 
+## 数据源规范（重要）
+
+**所有新功能必须使用 Tushare，禁止使用 AKShare。**
+
+- 数据接口统一通过 `tushare.pro_api(os.getenv("TUSHARE_TOKEN"))` 调用
+- 常用接口：`daily`（日行情）、`limit_list_d`（涨跌停，含名称/行业）、`stock_basic`（股票列表，1次/小时限频需缓存）
+- `stock_basic` 调用频率限制严格，需用文件缓存（见 `data/stock_basic_cache.csv`），每日只调一次
+- 大盘指数使用腾讯 Finance `qt.gtimg.cn`（不计入 Tushare 配额）
+
 ## 项目概述
 
 这是一个基于 Claude AI 的 A 股智能分析系统，集成全市场扫描、AI 选股、实时监控、板块轮动分析等功能。系统采用模块化架构，使用 Python 3.9+ 开发。
