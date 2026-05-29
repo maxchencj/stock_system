@@ -154,27 +154,33 @@ def _ai_review(indices: Dict, stats: Dict, top_stocks: Dict) -> str:
     up_brief  = "  ".join(f"{s['name']}{s['pct_chg']:+.1f}%" for s in up_list[:10])   or "无"
     dn_brief  = "  ".join(f"{s['name']}{s['pct_chg']:+.1f}%" for s in down_list[:5])  or "无"
 
+    up_stock_list  = "\n".join(f"{s['name']}|?" for s in up_list)
+    down_stock_list = "\n".join(f"{s['name']}|?" for s in down_list)
+
     prompt = f"""今日A股复盘（已排除创业板/科创板）：
 
-【大盘指数】{idx_str}
-【涨跌停】涨停{stats.get('zt',0)}家 / 跌停{stats.get('dt',0)}家 / 连板{stats.get('lian',0)}家
-【涨停热点行业】{sec_str}
-【涨幅榜Top10】{up_brief}
-【跌幅榜Top5】{dn_brief}
-【今日涨停股】{"、".join(zt_names[:15]) or "无"}
-【今日跌停股】{"、".join(dt_names[:10]) or "无"}
+大盘：{idx_str}
+涨停{stats.get('zt',0)}家 / 跌停{stats.get('dt',0)}家 / 连板{stats.get('lian',0)}家
+热点行业：{sec_str}
 
-请严格按以下格式输出（不要改变标签名称）：
-【涨停摘要】用一句话（15字以内）概括今日涨停主线
-【跌停摘要】用一句话（15字以内）概括今日跌停主因
-【今日总结】市场整体情绪（强/弱/分化）及核心逻辑（80字以内）
-【涨停原因】今日主板涨停股的共性原因和主线逻辑（80字以内）
-【跌停原因】今日主板跌停股的共性原因或个股逻辑（80字以内）
-【次日关注】明天重点方向，给出具体板块（80字以内）"""
+请严格按以下格式输出，不要改变标签名称：
+
+【涨幅个股原因】
+格式：股票名称|原因（5-10字，如"电力高股息催化"、"地产政策预期博弈"）
+{up_stock_list}
+
+【跌幅个股原因】
+格式：股票名称|原因（5-10字，如"业绩不及预期"、"行业下行周期"）
+{down_stock_list}
+
+【涨停总结】2-3句话概括今日涨停板块分布和核心驱动
+【跌停总结】2-3句话概括今日跌停主要原因和板块特征
+【今日总结】市场情绪及核心逻辑（60字以内）
+【次日关注】重点方向和操作建议（60字以内）"""
 
     return ai_engine._call(
         "你是资深A股复盘分析师，擅长归纳当日市场主线并给出次日操作建议。",
-        prompt, max_tokens=800
+        prompt, max_tokens=2000
     )
 
 
@@ -198,19 +204,32 @@ class DailyReview:
         down_list = top_stocks.get("down", [])
         date_str  = datetime.now().strftime("%Y-%m-%d")
 
-        # ── 解析 AI 摘要（涨停摘要 / 跌停摘要）
+        # ── 解析 AI 各段
+        import re as _re
         def _extract(tag: str, text: str, fallback: str = "—") -> str:
-            import re
-            m = re.search(rf"【{tag}】(.+?)(?=【|$)", text, re.S)
+            m = _re.search(rf"【{tag}】(.+?)(?=【|$)", text, _re.S)
             return m.group(1).strip() if m else fallback
 
-        zt_summary  = _extract("涨停摘要", ai_text)
-        dt_summary  = _extract("跌停摘要", ai_text)
-        # 全文分析部分（去掉摘要行，保留其余四段）
-        analysis_text = "\n\n".join(
-            line for line in ai_text.split("\n\n")
-            if not line.startswith("【涨停摘要】") and not line.startswith("【跌停摘要】")
-        )
+        def _parse_stock_reasons(tag: str, text: str) -> dict:
+            """解析【tag】段落中 '股票名|原因' 格式，返回 {name: reason}"""
+            section = _extract(tag, text, "")
+            result = {}
+            for line in section.splitlines():
+                line = line.strip().lstrip("- ").strip()
+                if "|" in line:
+                    parts = line.split("|", 1)
+                    name = parts[0].strip()
+                    reason = parts[1].strip().lstrip("?").strip() or "—"
+                    if name:
+                        result[name] = reason
+            return result
+
+        up_reasons  = _parse_stock_reasons("涨幅个股原因", ai_text)
+        down_reasons = _parse_stock_reasons("跌幅个股原因", ai_text)
+        zt_summary  = _extract("涨停总结", ai_text)
+        dt_summary  = _extract("跌停总结", ai_text)
+        summary     = _extract("今日总结", ai_text)
+        next_focus  = _extract("次日关注", ai_text)
 
         # ── 大盘表格
         idx_table = "| 指数 | 收盘 | 涨跌幅 |\n|------|-----:|------:|\n"
@@ -218,26 +237,19 @@ class DailyReview:
             arrow = "▲" if d["pct"] >= 0 else "▼"
             idx_table += f"| {name} | {d['price']:.2f} | {arrow} {d['pct']:+.2f}% |\n"
 
-        # ── 涨幅榜：Top10 表格（状态列替换 🔒）+ 其余涨停名单
-        up_table = "| # | 股票 | 涨跌幅 | 状态 |\n|--:|------|------:|:----:|\n"
-        for i, s in enumerate(up_list[:10]):
-            status = "涨停" if s["is_zt"] else "—"
-            up_table += f"| {i+1} | {s['name']} | {s['pct_chg']:+.2f}% | {status} |\n"
+        # ── 涨幅榜：全部 50 只，带原因列
+        up_table = "| # | 股票 | 涨跌幅 | 原因 |\n|--:|------|------:|------|\n"
+        for i, s in enumerate(up_list):
+            reason = up_reasons.get(s["name"], "—")
+            up_table += f"| {i+1} | {s['name']} | {s['pct_chg']:+.2f}% | {reason} |\n"
 
-        rest_zt   = [s["name"] for s in up_list[10:] if s["is_zt"]]
-        rest_near = [f"{s['name']} {s['pct_chg']:+.1f}%" for s in up_list[10:] if not s["is_zt"]]
-        rest_block = ""
-        if rest_zt:
-            chunks = [" · ".join(rest_zt[i:i+6]) for i in range(0, len(rest_zt), 6)]
-            rest_block += f"\n**其余涨停（{len(rest_zt)}只）**\n\n" + "\n\n".join(chunks) + "\n"
-        if rest_near:
-            rest_block += f"\n**近涨停**　" + "　".join(rest_near) + "\n"
+        rest_block = ""  # 不再需要单独的其余涨停列表
 
-        # ── 跌幅榜表格
-        down_table = "| # | 股票 | 涨跌幅 | 状态 |\n|--:|------|------:|:----:|\n"
+        # ── 跌幅榜：全部 10 只，带原因列
+        down_table = "| # | 股票 | 涨跌幅 | 原因 |\n|--:|------|------:|------|\n"
         for i, s in enumerate(down_list):
-            status = "跌停" if s["is_dt"] else "—"
-            down_table += f"| {i+1} | {s['name']} | {s['pct_chg']:+.2f}% | {status} |\n"
+            reason = down_reasons.get(s["name"], "—")
+            down_table += f"| {i+1} | {s['name']} | {s['pct_chg']:+.2f}% | {reason} |\n"
 
         # ── 组装 Markdown 文档
         md = f"""# 📋 每日复盘 — {date_str}
@@ -266,20 +278,26 @@ class DailyReview:
 ## 🏆 涨幅前 50
 
 {up_table}{rest_block}
-> 💡 **涨停主线**：{zt_summary}
+
+**涨停总结**：{zt_summary}
 
 ---
 
 ## 💔 跌幅前 10
 
 {down_table}
-> 💡 **跌停主因**：{dt_summary}
+
+**跌停总结**：{dt_summary}
 
 ---
 
-## 🤖 AI 复盘分析
+## 🤖 今日总结
 
-{analysis_text}
+{summary}
+
+## 📌 次日关注
+
+{next_focus}
 """
 
         # 写入临时文件并发送
