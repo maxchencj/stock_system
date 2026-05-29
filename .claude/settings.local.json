@@ -186,7 +186,16 @@
       "Bash(python3.12 -c \"import akshare as ak; df = ak.stock_zh_a_spot_em\\(\\); print\\('列名:', list\\(df.columns\\)[:10]\\)\")",
       "Read(//usr/local/bin/**)",
       "Bash(pyenv versions *)",
-      "Bash(/usr/local/bin/python3 *)"
+      "Bash(/usr/local/bin/python3 *)",
+      "WebFetch(domain:tushare.pro)",
+      "WebSearch",
+      "Bash(claude mcp *)",
+      "mcp__tushareMcp__trade_cal",
+      "mcp__tushareMcp__daily",
+      "Read(//Users/maxchen/**)",
+      "Read(//Users/maxchen/.claude/**)",
+      "Bash(rm -rf /Users/maxchen/Desktop/claudeForStock/stock_system/agent)",
+      "Bash(rm /Users/maxchen/Desktop/claudeForStock/stock_system/tests/test_agent_e2e.py /Users/maxchen/Desktop/claudeForStock/stock_system/tests/test_agent_tools.py)"
     ]
   }
 }
