@@ -195,7 +195,8 @@
       "Read(//Users/maxchen/**)",
       "Read(//Users/maxchen/.claude/**)",
       "Bash(rm -rf /Users/maxchen/Desktop/claudeForStock/stock_system/agent)",
-      "Bash(rm /Users/maxchen/Desktop/claudeForStock/stock_system/tests/test_agent_e2e.py /Users/maxchen/Desktop/claudeForStock/stock_system/tests/test_agent_tools.py)"
+      "Bash(rm /Users/maxchen/Desktop/claudeForStock/stock_system/tests/test_agent_e2e.py /Users/maxchen/Desktop/claudeForStock/stock_system/tests/test_agent_tools.py)",
+      "Bash(/opt/homebrew/bin/python3 --version)"
     ]
   }
 }
