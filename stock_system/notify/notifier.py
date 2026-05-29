@@ -135,6 +135,28 @@ class TelegramNotifier:
         logger.error("Telegram推送重试耗尽，放弃")
         return False
 
+    def send_document(self, file_path: str, caption: str = "") -> bool:
+        """发送文件附件（md / txt / csv 等）"""
+        if not self.enabled:
+            return False
+        url = f"https://api.telegram.org/bot{self.token}/sendDocument"
+        try:
+            with open(file_path, "rb") as f:
+                resp = requests.post(
+                    url,
+                    data={"chat_id": self.chat_id, "caption": caption},
+                    files={"document": f},
+                    timeout=15,
+                )
+            if resp.status_code == 200:
+                logger.info("Telegram文件推送成功")
+                return True
+            logger.warning(f"Telegram文件推送失败: {resp.text[:100]}")
+            return False
+        except Exception as e:
+            logger.error(f"Telegram文件推送异常: {e}")
+            return False
+
     @staticmethod
     def _split(text: str, limit: int = 4000) -> list:
         """按段落切割长消息，每段不超过 limit 字符"""
