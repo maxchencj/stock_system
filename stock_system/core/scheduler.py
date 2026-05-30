@@ -177,10 +177,10 @@ class TaskScheduler:
             id="macro_calendar", name="宏观经济日历", replace_existing=True
         )
 
-        # 打新提醒（每天 18:00 检查次日申购）
+        # 打新提醒（每天 08:45）
         self.scheduler.add_job(
             self.ipo_reminder_task,
-            CronTrigger(hour=18, minute=0),
+            CronTrigger(hour=8, minute=45),
             id="ipo_reminder", name="打新提醒", replace_existing=True
         )
 
@@ -203,13 +203,6 @@ class TaskScheduler:
 
         # ── Phase 3：数据增强 ──────────────────────────────
 
-
-        # 行业估值面板（每周六 10:00）
-        self.scheduler.add_job(
-            self.industry_panel_task,
-            CronTrigger(hour=10, minute=0, day_of_week="sat"),
-            id="industry_panel", name="行业估值面板", replace_existing=True
-        )
 
         self.scheduler.start()
         self.running = True
@@ -463,7 +456,7 @@ class TaskScheduler:
             logger.error(f"系统心跳任务失败: {e}", exc_info=True)
 
     def ipo_reminder_task(self):
-        """打新提醒：每天 18:00 检查次日新股申购"""
+        """打新提醒：每天 08:45"""
         logger.info("执行打新提醒任务")
         try:
             from modules.ipo.ipo_reminder import ipo_reminder
@@ -493,14 +486,6 @@ class TaskScheduler:
         except Exception as e:
             logger.error(f"大宗交易监控失败: {e}", exc_info=True)
 
-    def industry_panel_task(self):
-        """行业估值面板：每周六 10:00"""
-        logger.info("执行行业估值面板")
-        try:
-            from modules.sector.industry_panel import industry_panel
-            industry_panel.run_weekly_push()
-        except Exception as e:
-            logger.error(f"行业估值面板失败: {e}", exc_info=True)
 
     # ── Phase 4 任务 ──────────────────────────────────
 
