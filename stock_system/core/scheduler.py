@@ -203,6 +203,27 @@ class TaskScheduler:
 
         # ── Phase 3：数据增强 ──────────────────────────────
 
+        # ── 模拟仓信号扫描（交易时段，每5分钟）──────────────
+        self.scheduler.add_job(
+            self.sim_signal_task,
+            CronTrigger(hour="9", minute="30,35,40,45,50,55", day_of_week="mon-fri"),
+            id="sim_0930", name="模拟仓信号(09:30-09:55)", replace_existing=True
+        )
+        self.scheduler.add_job(
+            self.sim_signal_task,
+            CronTrigger(hour="10", minute="0,5,10,15,20,25,30,35,40,45,50,55", day_of_week="mon-fri"),
+            id="sim_1000", name="模拟仓信号(10:00-10:55)", replace_existing=True
+        )
+        self.scheduler.add_job(
+            self.sim_signal_task,
+            CronTrigger(hour="11", minute="0,5,10,15,20,25,30", day_of_week="mon-fri"),
+            id="sim_1100", name="模拟仓信号(11:00-11:30)", replace_existing=True
+        )
+        self.scheduler.add_job(
+            self.sim_signal_task,
+            CronTrigger(hour="13,14", minute="0,5,10,15,20,25,30,35,40,45,50,55", day_of_week="mon-fri"),
+            id="sim_pm", name="模拟仓信号(13:00-14:55)", replace_existing=True
+        )
 
         self.scheduler.start()
         self.running = True
@@ -558,6 +579,14 @@ class TaskScheduler:
 
         except Exception as e:
             logger.error(f"实时行情推送失败: {e}", exc_info=True)
+
+    def sim_signal_task(self):
+        """模拟仓信号扫描（盘中每5分钟）"""
+        try:
+            from modules.sim_trading.signal_engine import signal_engine
+            signal_engine.scan_once()
+        except Exception as e:
+            logger.error(f"模拟仓信号任务失败: {e}", exc_info=True)
 
     def _get_watchlist(self):
         """从 watchlist.json 获取自选股列表"""
