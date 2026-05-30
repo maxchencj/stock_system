@@ -47,3 +47,4 @@ stock_system/data/portfolio.json
 stock_system/data/quant_scores.json
 stock_system/data/review_*.md
 stock_system/data/stock_basic_cache.csv
+stock_system/data/task_schedule.md
