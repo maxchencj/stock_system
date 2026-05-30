@@ -134,6 +134,18 @@ class USStockConfig:
 
 
 @dataclass
+class SimTradingConfig:
+    """模拟仓交易配置"""
+    telegram_token: str = os.getenv("SIM_TELEGRAM_TOKEN", "")
+    telegram_chat_id: str = os.getenv("SIM_TELEGRAM_CHAT_ID", "")
+    enabled: bool = True
+    initial_capital: float = 100000.0   # 初始资金10万
+    per_trade_pct: float = 0.10         # 单笔建仓占总资产比例
+    max_total_position: float = 0.80    # 总仓位上限
+    max_single_position: float = 0.20   # 单股仓位上限
+
+
+@dataclass
 class SystemConfig:
     """系统总配置"""
     ai: AIConfig = field(default_factory=AIConfig)
@@ -144,6 +156,7 @@ class SystemConfig:
     notify: NotifyConfig = field(default_factory=NotifyConfig)
     web: WebConfig = field(default_factory=WebConfig)
     us_stock: USStockConfig = field(default_factory=USStockConfig)
+    sim_trading: SimTradingConfig = field(default_factory=SimTradingConfig)
 
     # 日志配置
     log_level: str = "INFO"
