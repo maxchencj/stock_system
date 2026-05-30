@@ -722,27 +722,31 @@ class SignalEngine:
             logger.info("模拟仓：自选股为空，跳过扫描")
             return []
 
-        results = []
-        prices = {}  # 当轮所有相关股票现价，用于总资产估值
-        for code, name in watchlist.items():
+        # 第一遍：取每只股的日K（一次取齐，复用于估值与信号判断）
+        klines = {}   # code -> DataFrame
+        prices = {}   # code -> 最新收盘价
+        for code in watchlist:
             try:
-                df = market_service.get_stock_kline(code, days=120)
-                if df is None or df.empty:
+                df = market_service.get_history(code, period="daily")
+                if df is None or df.empty or "close" not in df.columns:
                     continue
+                klines[code] = df
                 prices[code] = float(df["close"].iloc[-1])
             except Exception as e:
                 logger.warning(f"模拟仓取K线失败 {code}: {e}")
 
-        # 持仓股也要计入估值
+        # 持仓股若取价失败，用成本价兜底计入估值
         for code, pos in self.account.positions.items():
             if code not in prices:
                 prices[code] = pos["cost_price"]
 
+        # 第二遍：生成信号并成交
+        results = []
         for code, name in watchlist.items():
+            df = klines.get(code)
+            if df is None:
+                continue
             try:
-                df = market_service.get_stock_kline(code, days=120)
-                if df is None or df.empty:
-                    continue
                 sig = generate_signal(code, name or code, df)
                 if sig["action"] == "hold":
                     continue
@@ -765,6 +769,8 @@ class SignalEngine:
 
 signal_engine = SignalEngine()
 ```
+
+> **数据源说明**：`market_service.get_history(code, period="daily")` 基于 AKShare，默认返回近365天日K，列含 `date/open/close/high/low/volume`，按日期升序；无需传 `days`，60日均线数据量充足。
 
 - [ ] **Step 2: 验证可导入**
 
@@ -892,7 +898,7 @@ Expected: 输出"模拟仓扫描完成，成交 N 笔"与持仓/现金信息，�
 **数据文件**: `data/sim_account.json`（账户状态）
 **配置**: `config.sim_trading`（初始10万、单笔10%、总仓80%、单股20%）
 **环境变量**: `SIM_TELEGRAM_TOKEN` / `SIM_TELEGRAM_CHAT_ID`
-**定时任务**: 盘中每5分钟扫描（sim_0930 / sim_am / sim_pm）
+**定时任务**: 盘中每5分钟扫描（sim_0930 / sim_1000 / sim_1100 / sim_pm）
 **测试**: `python main.py --test-sim`；单测 `pytest tests/test_sim_*.py`
 
 **待实施（后续 Phase）**: AI研判层、缠论策略、回测系统、RSI+KDJ、动态仓位
@@ -920,7 +926,7 @@ git commit -m "feat(sim): 烟雾测试入口、模块文档、忽略账户数据
 2. `python main.py --test-sim` 正常跑完，无异常堆栈
 3. 配置 `SIM_TELEGRAM_TOKEN` / `SIM_TELEGRAM_CHAT_ID` 后，手动触发一次有成交的扫描，`@mcStockMessage_bot` 收到格式化成交消息
 4. `data/sim_account.json` 正确记录现金、持仓、加权成本、交易历史
-5. 调度器启动后能看到 `sim_0930 / sim_am / sim_pm` 三个任务注册
+5. 调度器启动后能看到 `sim_0930 / sim_1000 / sim_1100 / sim_pm` 四个任务注册
 
 ---
 
