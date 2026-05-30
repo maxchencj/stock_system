@@ -785,28 +785,35 @@ git commit -m "feat(sim): 信号引擎扫描+自动成交+推送"
 **Files:**
 - Modify: `core/scheduler.py`（新增任务注册 + 任务方法）
 
-- [ ] **Step 1: 在 `core/scheduler.py` 的 `_register_jobs` 中，实时行情任务注册之后新增**
+- [ ] **Step 1: 在 `core/scheduler.py` 的 `start()` 方法中注册任务**
+
+定时任务全部在 `start()` 方法体内用 `self.scheduler.add_job(...)` 注册（本仓库没有独立的 `_register_jobs` 方法）。在 `start()` 末尾的 `# ── Phase 3：数据增强` 注释行之后、`self.scheduler.start()` 之前插入（与现有"实时行情推送"任务的分时段写法保持一致，避开 11:30 后与 11:35-11:59 的午休时段噪音）：
 
 ```python
         # ── 模拟仓信号扫描（交易时段，每5分钟）──────────────
         self.scheduler.add_job(
             self.sim_signal_task,
-            CronTrigger(hour=9, minute="30-59/5", day_of_week="mon-fri"),
-            id="sim_0930", name="模拟仓信号(09:30-09:59)", replace_existing=True
+            CronTrigger(hour="9", minute="30,35,40,45,50,55", day_of_week="mon-fri"),
+            id="sim_0930", name="模拟仓信号(09:30-09:55)", replace_existing=True
         )
         self.scheduler.add_job(
             self.sim_signal_task,
-            CronTrigger(hour="10-11", minute="0-59/5", day_of_week="mon-fri"),
-            id="sim_am", name="模拟仓信号(10:00-11:59)", replace_existing=True
+            CronTrigger(hour="10", minute="0,5,10,15,20,25,30,35,40,45,50,55", day_of_week="mon-fri"),
+            id="sim_1000", name="模拟仓信号(10:00-10:55)", replace_existing=True
         )
         self.scheduler.add_job(
             self.sim_signal_task,
-            CronTrigger(hour="13-14", minute="0-59/5", day_of_week="mon-fri"),
-            id="sim_pm", name="模拟仓信号(13:00-14:59)", replace_existing=True
+            CronTrigger(hour="11", minute="0,5,10,15,20,25,30", day_of_week="mon-fri"),
+            id="sim_1100", name="模拟仓信号(11:00-11:30)", replace_existing=True
+        )
+        self.scheduler.add_job(
+            self.sim_signal_task,
+            CronTrigger(hour="13,14", minute="0,5,10,15,20,25,30,35,40,45,50,55", day_of_week="mon-fri"),
+            id="sim_pm", name="模拟仓信号(13:00-14:55)", replace_existing=True
         )
 ```
 
-- [ ] **Step 2: 在 `core/scheduler.py` 新增任务方法（放在 `realtime_quote_task` 之后）**
+- [ ] **Step 2: 在 `core/scheduler.py` 新增任务方法（放在 `realtime_market_push_task` 之后，类的任务函数区内）**
 
 ```python
     def sim_signal_task(self):
@@ -819,10 +826,14 @@ git commit -m "feat(sim): 信号引擎扫描+自动成交+推送"
         return
 ```
 
-- [ ] **Step 3: 验证任务注册无语法错误**
+- [ ] **Step 3: 验证导入与注册无语法错误**
 
-Run: `cd stock_system && python3 -c "from core.scheduler import TaskScheduler; s=TaskScheduler(); s._register_jobs(); print('jobs:', [j.id for j in s.scheduler.get_jobs() if j.id.startswith('sim')])"`
-Expected: 输出包含 `['sim_0930', 'sim_am', 'sim_pm']`（注：若 `_register_jobs` 末尾调用了 `scheduler.start()`，改为 `print` 前先确认无异常即可）
+`start()` 末尾会调用 `self.scheduler.start()` 并 `_print_jobs()`，不便在脚本里安全调用。改为验证模块可导入、方法存在：
+
+Run: `cd stock_system && python3 -c "from core.scheduler import TaskScheduler; assert hasattr(TaskScheduler, 'sim_signal_task'); print('ok')"`
+Expected: 输出 `ok`，无异常
+
+启动系统后，日志 `_print_jobs()` 输出应包含 `sim_0930 / sim_1000 / sim_1100 / sim_pm` 四个任务。
 
 - [ ] **Step 4: Commit**
 
