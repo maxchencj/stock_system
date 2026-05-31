@@ -194,12 +194,6 @@ class TaskScheduler:
             id="daily_review", name="每日复盘", replace_existing=True
         )
 
-        # 模拟持仓周报（每周日 20:00）
-        self.scheduler.add_job(
-            self.portfolio_weekly_task,
-            CronTrigger(hour=20, minute=0, day_of_week="sun"),
-            id="portfolio_weekly", name="模拟持仓周报", replace_existing=True
-        )
 
         # ── Phase 3：数据增强 ──────────────────────────────
 
@@ -530,14 +524,6 @@ class TaskScheduler:
         except Exception as e:
             logger.error(f"每日复盘失败: {e}", exc_info=True)
 
-    def portfolio_weekly_task(self):
-        """模拟持仓周报：每周日 20:00"""
-        logger.info("执行模拟持仓周报")
-        try:
-            from modules.portfolio.portfolio_tracker import portfolio_tracker
-            portfolio_tracker.run_weekly_report()
-        except Exception as e:
-            logger.error(f"模拟持仓周报失败: {e}", exc_info=True)
 
     def realtime_market_push_task(self):
         """实时行情推送任务"""
