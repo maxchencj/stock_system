@@ -46,7 +46,7 @@ def generate_signal(code: str, name: str, df: pd.DataFrame) -> Dict:
     """生成共振信号。数据不足或无共振返回 action='hold'。"""
     base = {"code": code, "name": name, "action": "hold", "reasons": [],
             "price": float(df["close"].iloc[-1]) if len(df) else 0.0}
-    if df is None or len(df) < 60:
+    if df is None or len(df) < 120:
         return base
 
     close = df["close"].astype(float)

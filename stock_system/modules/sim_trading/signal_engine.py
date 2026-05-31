@@ -49,43 +49,48 @@ class SignalEngine:
             logger.info("模拟仓：自选股为空，跳过扫描")
             return []
 
-        # 第一遍：取每只股的日K（一次取齐，复用于估值与信号判断）
-        klines = {}   # code -> DataFrame
-        prices = {}   # code -> 最新收盘价
-        for code in watchlist:
-            try:
-                df = market_service.get_history(code, period="daily")
-                if df is None or df.empty or "close" not in df.columns:
-                    continue
-                klines[code] = df
-                prices[code] = float(df["close"].iloc[-1])
-            except Exception as e:
-                logger.warning(f"模拟仓取K线失败 {code}: {e}")
+        # 第一步：批量获取实时价格（腾讯财经，用于成交定价）
+        codes = list(watchlist.keys())
+        prices = {}
+        try:
+            quotes_df = market_service.get_realtime_quotes(codes)
+            for _, row in quotes_df.iterrows():
+                code = str(row.get("code", ""))
+                if code and row.get("price", 0) > 0:
+                    prices[code] = float(row["price"])
+        except Exception as e:
+            logger.warning(f"模拟仓获取实时行情失败: {e}")
 
-        # 持仓股若取价失败，用成本价兜底计入估值
+        # 持仓股若取价失败，用成本价兜底
         for code, pos in self.account.positions.items():
             if code not in prices:
                 prices[code] = pos["cost_price"]
 
-        # 第二遍：生成信号并成交
+        # 第二步：逐股拉5分钟K线 → 计算信号 → 成交
         results = []
         for code, name in watchlist.items():
-            df = klines.get(code)
-            if df is None:
-                continue
             try:
+                df = market_service.get_5min_kline(code)
+                if df is None or df.empty or "close" not in df.columns:
+                    logger.warning(f"模拟仓：{code} 5分钟K线为空，跳过")
+                    continue
+
                 sig = generate_signal(code, name or code, df)
                 if sig["action"] == "hold":
                     continue
-                # 卖出信号仅对已持仓股有效
                 if sig["action"] == "sell" and code not in self.account.positions:
                     continue
+
+                # 用实时价覆盖信号里的价格，确保按当前市价成交
+                if code in prices:
+                    sig["price"] = prices[code]
+
                 sig["signal"] = "、".join(sig["reasons"])
                 result = self.account.execute(sig, prices)
                 if result.get("ok"):
                     tv = self.account.total_value(prices)
                     sim_notifier.send_trade(result, sig, tv)
-                    logger.info(f"模拟仓成交 {result['action']} {code} {result['shares']}股")
+                    logger.info(f"模拟仓成交 {result['action']} {code} {result['shares']}股 @{sig['price']}")
                 else:
                     sim_notifier.send_skip_log(result)
                 results.append(result)

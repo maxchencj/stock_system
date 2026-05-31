@@ -312,6 +312,41 @@ class MarketDataService:
             logger.error(f"获取{code}历史数据失败: {e}")
             return pd.DataFrame()
 
+    @staticmethod
+    def get_5min_kline(code: str, days: int = 10) -> pd.DataFrame:
+        """获取5分钟K线（BaoStock，前复权）"""
+        try:
+            import baostock as bs
+            bs_code = f"sh.{code}" if code.startswith("6") else f"sz.{code}"
+            lg = bs.login()
+            if lg.error_code != "0":
+                logger.warning(f"BaoStock登录失败: {lg.error_msg}")
+                return pd.DataFrame()
+            start = (datetime.now() - timedelta(days=days * 2)).strftime("%Y-%m-%d")
+            end = datetime.now().strftime("%Y-%m-%d")
+            rs = bs.query_history_k_data_plus(
+                bs_code,
+                "date,time,open,high,low,close,volume",
+                start_date=start, end_date=end,
+                frequency="5", adjustflag="2"
+            )
+            rows = []
+            while rs.error_code == "0" and rs.next():
+                rows.append(rs.get_row_data())
+            bs.logout()
+            if not rows:
+                return pd.DataFrame()
+            df = pd.DataFrame(rows, columns=["date", "time", "open", "high", "low", "close", "volume"])
+            df = df[df["close"] != ""].copy()
+            for col in ["open", "high", "low", "close", "volume"]:
+                df[col] = pd.to_numeric(df[col], errors="coerce")
+            df["date"] = pd.to_datetime(df["date"].str[:10] + " " + df["time"].str[8:10] + ":" + df["time"].str[10:12])
+            df = df.drop(columns=["time"]).sort_values("date").reset_index(drop=True)
+            return df.tail(days * 48)  # 每交易日约48根5分钟K
+        except Exception as e:
+            logger.warning(f"获取{code}五分钟K线失败: {e}")
+            return pd.DataFrame()
+
 
 # ═══════════════════════════════════════════════════════════
 #  板块数据（腾讯申万行业指数）
