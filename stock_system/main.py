@@ -88,6 +88,7 @@ def main():
     parser.add_argument("--enable-monitor", action="store_true", help="启动时开启监控")
     parser.add_argument("--test-picker", action="store_true", help="测试选股模块")
     parser.add_argument("--test-sector", action="store_true", help="测试板块分析")
+    parser.add_argument("--test-sim", action="store_true", help="测试模拟仓信号扫描")
     args = parser.parse_args()
 
     # 注册信号处理
@@ -113,6 +114,16 @@ def main():
         print("\n" + "=" * 60)
         print(report)
         print("=" * 60)
+        return
+
+    if args.test_sim:
+        logger.info("测试模式: 模拟仓信号扫描")
+        from modules.sim_trading.signal_engine import signal_engine
+        results = signal_engine.scan_once()
+        traded = len([r for r in results if r.get("ok")])
+        print(f"\n模拟仓扫描完成，成交 {traded} 笔")
+        print(f"当前持仓 {len(signal_engine.account.positions)} 只，"
+              f"现金 {signal_engine.account.cash:.0f}")
         return
 
     # 正常启动（监控模块默认开启）

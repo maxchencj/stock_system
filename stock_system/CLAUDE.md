@@ -224,7 +224,39 @@ scheduler.trigger_stock_pick()
 scheduler.trigger_sector_analysis()
 ```
 
-### 7. 通知层 (`notify/notifier.py`)
+### 7. 模拟仓交易模块 (`modules/sim_trading/`)
+
+**职责**: 基于自选股自动扫描信号、全自动成交、推送专属 Telegram Bot（@mcStockMessage_bot）
+
+**子模块结构**:
+- `account/account.py` — `SimAccount`: 现金账户、持仓管理、买卖执行、持久化（`data/sim_account.json`）
+- `strategy/signals.py` — 纯函数信号生成：MACD 金叉/死叉 + 均线多空双共振
+- `signal_engine.py` — `SignalEngine.scan_once()`: 扫描自选股 → 生成信号 → 执行 → 推送
+- `sim_notifier.py` — `SimNotifier`: 专用第三个 Telegram Bot 推送
+
+**关键规则**:
+- 买入：MACD 金叉 **且** 均线多头（价格 > MA20 > MA60）才触发
+- 卖出：MACD 死叉 **且** 均线空头（仅对已持仓股有效）
+- 每笔买入比例：`per_trade_pct`（默认 10%），A 股 100 股整数手取整
+- 总仓位上限 `max_total_position`（80%），单股上限 `max_single_position`（20%）
+- `sim_account.json` 已在 `.gitignore` 中，不跟踪账户数据
+
+**配置（`.env`）**:
+```
+SIM_TELEGRAM_TOKEN=<第三个bot的token>
+SIM_TELEGRAM_CHAT_ID=<chat id>
+```
+
+**测试入口**:
+```bash
+python main.py --test-sim
+```
+
+**定时任务**: 交易日每 5 分钟扫描一次（09:30–11:30, 13:00–14:55）
+
+---
+
+### 8. 通知层 (`notify/notifier.py`)
 
 **职责**: 统一管理所有通知推送
 
