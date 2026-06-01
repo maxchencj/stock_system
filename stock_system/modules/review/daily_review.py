@@ -193,12 +193,14 @@ def _fetch_stock_picks(pro, today: str, name_map: Dict) -> List[Dict]:
       3. RSI 维度  — RSI(14) 处于强势区（45-65）
       4. 布林维度  — 价格在中轨附近，带宽合理
       5. 量能维度  — 量比 ≥ 1.5，换手率 1-15%
+    初筛：涨幅前100（不依赖 daily_basic，避免接口偶发失败导致全空）
     """
     import pandas as pd
+    import time
     from datetime import timedelta
 
     try:
-        # ── Step 1: 今日全市场快照
+        # ── Step 1: 今日全市场快照，按涨幅取前100
         daily_today = pro.daily(
             trade_date=today,
             fields="ts_code,open,high,low,close,vol,amount,pct_chg"
@@ -206,44 +208,23 @@ def _fetch_stock_picks(pro, today: str, name_map: Dict) -> List[Dict]:
         if daily_today is None or daily_today.empty:
             return []
 
-        try:
-            basic_today = pro.daily_basic(
-                trade_date=today,
-                fields="ts_code,turnover_rate,volume_ratio,pe,pb,circ_mv"
-            )
-            df = daily_today.merge(basic_today, on="ts_code", how="left")
-        except Exception:
-            df = daily_today.copy()
-            df["turnover_rate"] = None
-            df["volume_ratio"]  = None
-            df["pe"] = None
-
+        df = daily_today.copy()
         df = df[~df["ts_code"].apply(_is_excluded_board)].copy()
+        df["pct_chg"] = df["pct_chg"].astype(float)
+        df["amount"]  = pd.to_numeric(df["amount"], errors="coerce").fillna(0)
 
-        # 初筛：价格 ≥ 5，涨幅适中（不追涨停、不跌停），量能放大，有成交
-        df["pct_chg"]       = df["pct_chg"].astype(float)
-        df["volume_ratio"]  = pd.to_numeric(df["volume_ratio"], errors="coerce").fillna(0)
-        df["turnover_rate"] = pd.to_numeric(df["turnover_rate"], errors="coerce").fillna(0)
-        df["pe"]            = pd.to_numeric(df["pe"], errors="coerce")
-
+        # 初筛：价格 ≥ 5，涨幅适中（不追涨停、不跌停），有成交
         df = df[
             (df["close"] >= 5) &
             (df["pct_chg"].between(-3, 9)) &
-            (df["volume_ratio"] >= 1.2) &
-            (df["turnover_rate"].between(1, 20)) &
-            (df["amount"].fillna(0) > 0)
+            (df["amount"] > 0)
         ].copy()
 
         if df.empty:
             return []
 
-        # 初步评分，选 top 30 进行深度历史分析
-        df["init_score"] = (
-            df["volume_ratio"] * 0.4 +
-            df["pct_chg"].clip(0, 5) * 0.3 +
-            (5 / df["turnover_rate"].clip(1, 20)) * 0.3
-        )
-        candidates = df.nlargest(30, "init_score")["ts_code"].tolist()
+        # 涨幅前100作为候选池
+        candidates = df.nlargest(100, "pct_chg")["ts_code"].tolist()
 
         # ── Step 2: 逐股历史数据 + 技术指标计算
         start_date = (
@@ -253,6 +234,7 @@ def _fetch_stock_picks(pro, today: str, name_map: Dict) -> List[Dict]:
         results = []
         for ts_code in candidates:
             try:
+                time.sleep(0.15)  # 避免100次连续调用触发Tushare频率限制
                 hist = pro.daily(
                     ts_code=ts_code, start_date=start_date, end_date=today,
                     fields="trade_date,open,high,low,close,vol"
