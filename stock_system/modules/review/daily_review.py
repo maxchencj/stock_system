@@ -131,7 +131,7 @@ def _fetch_top_stocks(pro, today: str, name_map: Dict) -> Dict:
 
         cols = ["ts_code", "name", "close", "pct_chg", "is_zt", "is_dt"]
         return {
-            "up":   daily.nlargest(50, "pct_chg")[cols].to_dict("records"),
+            "up":   daily.nlargest(100, "pct_chg")[cols].to_dict("records"),
             "down": daily.nsmallest(10, "pct_chg")[cols].to_dict("records"),
             "daily_df": daily,
         }
@@ -501,7 +501,7 @@ class DailyReview:
 {idx_table}
 ---
 
-## 🏆 涨幅前 50
+## 🏆 涨幅前 100
 
 {up_table}{rest_block}
 
