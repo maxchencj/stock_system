@@ -131,7 +131,7 @@ def _fetch_top_stocks(pro, today: str, name_map: Dict) -> Dict:
 
         cols = ["ts_code", "name", "close", "pct_chg", "is_zt", "is_dt"]
         return {
-            "up":   daily.nlargest(100, "pct_chg")[cols].to_dict("records"),
+            "up":   daily[daily["pct_chg"] >= 9.9].sort_values("pct_chg", ascending=False)[cols].to_dict("records"),
             "down": daily.nsmallest(10, "pct_chg")[cols].to_dict("records"),
             "daily_df": daily,
         }
@@ -140,21 +140,35 @@ def _fetch_top_stocks(pro, today: str, name_map: Dict) -> Dict:
         return {}
 
 
-# ─── AI 分析 ───────────────────────────────────────────────────
-def _ai_review(indices: Dict, stats: Dict, top_stocks: Dict) -> str:
+# ─── AI 分析（分批）──────────────────────────────────────────────
+def _ai_batch_reasons(stocks: List[Dict]) -> Dict[str, str]:
+    """为一批涨停股生成上涨原因，返回 {name: reason}"""
+    stock_list = "\n".join(f"{s['name']}|?" for s in stocks)
+    prompt = f"""请为以下今日涨停的A股股票逐一生成上涨原因（15-25字，说明具体催化剂和逻辑）：
+
+格式：股票名称|原因
+{stock_list}"""
+    raw = ai_engine._call(
+        "你是资深A股复盘分析师，擅长归纳个股涨停逻辑。",
+        prompt, max_tokens=1500
+    )
+    result = {}
+    for line in raw.splitlines():
+        line = line.strip().lstrip("- 0123456789.")
+        if "|" in line:
+            parts = line.split("|", 1)
+            name = parts[0].strip()
+            reason = parts[1].strip().lstrip("?").strip() or "—"
+            if name:
+                result[name] = reason
+    return result
+
+
+def _ai_summaries(indices: Dict, stats: Dict, down_list: List[Dict]) -> str:
+    """生成跌幅原因 + 涨/跌停总结 + 今日总结 + 次日关注"""
     idx_str = "  ".join(f"{k} {v['pct']:+.2f}%" for k, v in indices.items()) \
         if indices else "数据获取失败"
     sec_str = " · ".join(stats.get("sectors", [])) or "无"
-
-    up_list   = top_stocks.get("up", [])
-    down_list = top_stocks.get("down", [])
-
-    zt_names = [s["name"] for s in up_list   if s.get("is_zt")]
-    dt_names = [s["name"] for s in down_list if s.get("is_dt")]
-    up_brief  = "  ".join(f"{s['name']}{s['pct_chg']:+.1f}%" for s in up_list[:10])   or "无"
-    dn_brief  = "  ".join(f"{s['name']}{s['pct_chg']:+.1f}%" for s in down_list[:5])  or "无"
-
-    up_stock_list  = "\n".join(f"{s['name']}|?" for s in up_list)
     down_stock_list = "\n".join(f"{s['name']}|?" for s in down_list)
 
     prompt = f"""今日A股复盘（已排除创业板/科创板）：
@@ -165,12 +179,8 @@ def _ai_review(indices: Dict, stats: Dict, top_stocks: Dict) -> str:
 
 请严格按以下格式输出，不要改变标签名称：
 
-【涨幅个股原因】
-格式：股票名称|原因（15-25字，说明具体催化剂和上涨逻辑，如"受国家电网智能化改造招标消息刺激，电力设备板块集体拉升"、"公司发布业绩预增公告，净利润同比增长超150%"）
-{up_stock_list}
-
 【跌幅个股原因】
-格式：股票名称|原因（15-25字，说明具体下跌原因，如"半年报预告显示业绩大幅亏损，主力资金出逃"、"面板行业景气度持续下行，产品价格跌破成本线"）
+格式：股票名称|原因（15-25字，说明具体下跌原因）
 {down_stock_list}
 
 【涨停总结】2-3句话概括今日涨停板块分布和核心驱动
@@ -180,7 +190,7 @@ def _ai_review(indices: Dict, stats: Dict, top_stocks: Dict) -> str:
 
     return ai_engine._call(
         "你是资深A股复盘分析师，擅长归纳当日市场主线并给出次日操作建议。",
-        prompt, max_tokens=6000
+        prompt, max_tokens=2000
     )
 
 
@@ -410,87 +420,33 @@ def _ai_picks_analysis(picks: List[Dict]) -> List[str]:
 class DailyReview:
 
     def run_daily_push(self):
+        import re as _re
+
         logger.info("执行每日复盘")
-        today = datetime.now().strftime("%Y%m%d")
-        pro   = _get_pro()
+        today    = datetime.now().strftime("%Y%m%d")
+        date_str = datetime.now().strftime("%Y-%m-%d")
+        pro      = _get_pro()
 
         indices    = _fetch_market_summary()
         name_map   = _get_name_map(pro, today)
         top_stocks = _fetch_top_stocks(pro, today, name_map)
         stats      = _fetch_limit_stats(pro, today, top_stocks.get("daily_df"))
         picks      = _fetch_stock_picks(pro, today, name_map)
-        ai_text    = _ai_review(indices, stats, top_stocks)
-        picks_ai   = _ai_picks_analysis(picks)
 
-        sec_str = " · ".join(stats.get("sectors", [])) or "—"
         zt, dt, lian = stats.get("zt", 0), stats.get("dt", 0), stats.get("lian", 0)
-        up_list   = top_stocks.get("up", [])
-        down_list = top_stocks.get("down", [])
-        date_str  = datetime.now().strftime("%Y-%m-%d")
+        sec_str      = " · ".join(stats.get("sectors", [])) or "—"
+        up_list      = top_stocks.get("up", [])
+        down_list    = top_stocks.get("down", [])
 
-        # ── 解析 AI 各段
-        import re as _re
-        def _extract(tag: str, text: str, fallback: str = "—") -> str:
-            m = _re.search(rf"【{tag}】(.+?)(?=【|$)", text, _re.S)
-            return m.group(1).strip() if m else fallback
+        md_path = str(_DATA_DIR / f"review_{date_str}.md")
 
-        def _parse_stock_reasons(tag: str, text: str) -> dict:
-            """解析【tag】段落中 '股票名|原因' 格式，返回 {name: reason}"""
-            section = _extract(tag, text, "")
-            result = {}
-            for line in section.splitlines():
-                line = line.strip().lstrip("- ").strip()
-                if "|" in line:
-                    parts = line.split("|", 1)
-                    name = parts[0].strip()
-                    reason = parts[1].strip().lstrip("?").strip() or "—"
-                    if name:
-                        result[name] = reason
-            return result
-
-        up_reasons  = _parse_stock_reasons("涨幅个股原因", ai_text)
-        down_reasons = _parse_stock_reasons("跌幅个股原因", ai_text)
-        zt_summary  = _extract("涨停总结", ai_text)
-        dt_summary  = _extract("跌停总结", ai_text)
-        summary     = _extract("今日总结", ai_text)
-        next_focus  = _extract("次日关注", ai_text)
-
-        # ── 大盘表格
+        # ── Phase 0: 写文件头（大盘 + 涨跌停统计）
         idx_table = "| 指数 | 收盘 | 涨跌幅 |\n|------|-----:|------:|\n"
         for name, d in indices.items():
             arrow = "▲" if d["pct"] >= 0 else "▼"
             idx_table += f"| {name} | {d['price']:.2f} | {arrow} {d['pct']:+.2f}% |\n"
 
-        # ── 涨幅榜：全部 50 只，带原因列
-        up_table = "| # | 股票 | 涨跌幅 | 原因 |\n|--:|------|------:|------|\n"
-        for i, s in enumerate(up_list):
-            reason = up_reasons.get(s["name"], "—")
-            up_table += f"| {i+1} | {s['name']} | {s['pct_chg']:+.2f}% | {reason} |\n"
-
-        rest_block = ""  # 不再需要单独的其余涨停列表
-
-        # ── 跌幅榜：全部 10 只，带原因列
-        down_table = "| # | 股票 | 涨跌幅 | 原因 |\n|--:|------|------:|------|\n"
-        for i, s in enumerate(down_list):
-            reason = down_reasons.get(s["name"], "—")
-            down_table += f"| {i+1} | {s['name']} | {s['pct_chg']:+.2f}% | {reason} |\n"
-
-        # ── 精选股票表格
-        picks_block = ""
-        if picks:
-            picks_block = "| # | 股票 | 现价 | 涨跌幅 | 技术信号 | 开仓逻辑 | 参考止损 |\n"
-            picks_block += "|--:|------|-----:|------:|---------|---------|--------|\n"
-            for i, (p, ai) in enumerate(zip(picks, picks_ai or [{}] * len(picks))):
-                sig = " · ".join(p["signals"][:3])  # 最多展示3个信号
-                logic = ai.get("logic", "—") if isinstance(ai, dict) else "—"
-                stop  = ai.get("stop", "—")  if isinstance(ai, dict) else "—"
-                picks_block += (
-                    f"| {i+1} | {p['name']} | {p['price']} "
-                    f"| {p['pct_chg']:+.2f}% | {sig} | {logic} | {stop} |\n"
-                )
-
-        # ── 组装 Markdown 文档
-        md = f"""# 📋 每日复盘 — {date_str}
+        header = f"""# 📋 每日复盘 — {date_str}
 
 > 主板 + 北交所　|　已排除创业板 / 科创板
 
@@ -501,47 +457,110 @@ class DailyReview:
 {idx_table}
 ---
 
-## 🏆 涨幅前 100
-
-{up_table}{rest_block}
-
-**涨停总结**：{zt_summary}
+> 涨停 **{zt}** 家　跌停 **{dt}** 家　连板 **{lian}** 家　热点：{sec_str}
 
 ---
 
-## 💔 跌幅前 10
+## 🏆 今日涨停股（主板 + 北交所，共 {len(up_list)} 只）
 
-{down_table}
-
-**跌停总结**：{dt_summary}
-
----
-
-## 🤖 今日总结
-
-{summary}
-
-## 📌 次日关注
-
-{next_focus}
-
----
-
-## 🎯 今日开仓精选（5只）
-
-{picks_block if picks_block else "_选股数据获取失败_"}
-
-> 技术评分维度：趋势（MA多头）/ MACD（金叉/扩张）/ RSI（45-65）/ 布林（中轨共振）/ 量能（量比≥1.5）
+| # | 股票 | 涨跌幅 | 原因 |
+|--:|------|------:|------|
 """
-
-        # 写入临时文件并发送
-        md_path = str(_DATA_DIR / f"review_{date_str}.md")
         with open(md_path, "w", encoding="utf-8-sig") as f:
-            f.write(md)
+            f.write(header)
 
+        # ── Phase 1..N: 分批 AI 生成涨停原因，追加写行
+        import time as _time
+        BATCH_SIZE = 30
+        all_up_reasons: Dict[str, str] = {}
+        for batch_idx in range(0, len(up_list), BATCH_SIZE):
+            batch = up_list[batch_idx: batch_idx + BATCH_SIZE]
+            batch_no = batch_idx // BATCH_SIZE + 1
+            logger.info(f"涨停原因批次 {batch_no}，共 {len(batch)} 只")
+            batch_reasons: Dict[str, str] = {}
+            for attempt in range(3):
+                try:
+                    batch_reasons = _ai_batch_reasons(batch)
+                    if batch_reasons:
+                        break
+                    logger.warning(f"批次 {batch_no} 第 {attempt+1} 次返回空，重试")
+                except Exception as e:
+                    logger.warning(f"批次 {batch_no} 第 {attempt+1} 次失败: {e}")
+                _time.sleep(3)
+            all_up_reasons.update(batch_reasons)
+
+            with open(md_path, "a", encoding="utf-8-sig") as f:
+                for i, s in enumerate(batch):
+                    reason = batch_reasons.get(s["name"], "—")
+                    f.write(f"| {batch_idx + i + 1} | {s['name']} | {s['pct_chg']:+.2f}% | {reason} |\n")
+
+        # ── Phase N+1: AI 生成总结 + 跌幅原因
+        logger.info("生成涨/跌停总结及跌幅原因")
+        try:
+            summary_text = _ai_summaries(indices, stats, down_list)
+        except Exception as e:
+            logger.warning(f"总结 AI 调用失败: {e}")
+            summary_text = ""
+
+        def _extract(tag: str, text: str, fallback: str = "—") -> str:
+            m = _re.search(rf"【{tag}】(.+?)(?=【|$)", text, _re.S)
+            return m.group(1).strip() if m else fallback
+
+        def _parse_down_reasons(text: str) -> Dict[str, str]:
+            section = _extract("跌幅个股原因", text, "")
+            result: Dict[str, str] = {}
+            for line in section.splitlines():
+                line = line.strip().lstrip("- ")
+                if "|" in line:
+                    parts = line.split("|", 1)
+                    name   = parts[0].strip()
+                    reason = parts[1].strip().lstrip("?").strip() or "—"
+                    if name:
+                        result[name] = reason
+            return result
+
+        down_reasons = _parse_down_reasons(summary_text)
+        zt_summary   = _extract("涨停总结",  summary_text)
+        dt_summary   = _extract("跌停总结",  summary_text)
+        summary      = _extract("今日总结",  summary_text)
+        next_focus   = _extract("次日关注",  summary_text)
+
+        down_table = "| # | 股票 | 涨跌幅 | 原因 |\n|--:|------|------:|------|\n"
+        for i, s in enumerate(down_list):
+            reason = down_reasons.get(s["name"], "—")
+            down_table += f"| {i+1} | {s['name']} | {s['pct_chg']:+.2f}% | {reason} |\n"
+
+        with open(md_path, "a", encoding="utf-8-sig") as f:
+            f.write(f"\n**涨停总结**：{zt_summary}\n\n---\n\n")
+            f.write(f"## 💔 跌幅前 10\n\n{down_table}\n")
+            f.write(f"**跌停总结**：{dt_summary}\n\n---\n\n")
+            f.write(f"## 🤖 今日总结\n\n{summary}\n\n")
+            f.write(f"## 📌 次日关注\n\n{next_focus}\n\n---\n\n")
+
+        # ── Phase N+2: 精选股票
+        picks_ai = _ai_picks_analysis(picks)
+        if picks:
+            picks_block = "| # | 股票 | 现价 | 涨跌幅 | 技术信号 | 开仓逻辑 | 参考止损 |\n"
+            picks_block += "|--:|------|-----:|------:|---------|---------|--------|\n"
+            for i, (p, ai) in enumerate(zip(picks, picks_ai or [{}] * len(picks))):
+                sig   = " · ".join(p["signals"][:3])
+                logic = ai.get("logic", "—") if isinstance(ai, dict) else "—"
+                stop  = ai.get("stop",  "—") if isinstance(ai, dict) else "—"
+                picks_block += (
+                    f"| {i+1} | {p['name']} | {p['price']} "
+                    f"| {p['pct_chg']:+.2f}% | {sig} | {logic} | {stop} |\n"
+                )
+        else:
+            picks_block = "_选股数据获取失败_"
+
+        with open(md_path, "a", encoding="utf-8-sig") as f:
+            f.write(f"## 🎯 今日开仓精选（5只）\n\n{picks_block}\n\n")
+            f.write("> 技术评分维度：趋势（MA多头）/ MACD（金叉/扩张）/ RSI（45-65）/ 布林（中轨共振）/ 量能（量比≥1.5）\n")
+
+        # ── Phase End: 推送
         caption = f"📋 每日复盘 {date_str}　涨停{zt}家 跌停{dt}家"
         notifier.telegram.send_document(md_path, caption=caption)
-        logger.info("每日复盘 md 文件已推送")
+        logger.info(f"每日复盘已推送，涨停 {len(up_list)} 只，分 {(len(up_list) + BATCH_SIZE - 1) // BATCH_SIZE} 批处理")
 
 
 daily_review = DailyReview()
