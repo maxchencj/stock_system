@@ -154,7 +154,7 @@ def _ai_review(indices: Dict, stats: Dict, top_stocks: Dict) -> str:
     up_brief  = "  ".join(f"{s['name']}{s['pct_chg']:+.1f}%" for s in up_list[:10])   or "无"
     dn_brief  = "  ".join(f"{s['name']}{s['pct_chg']:+.1f}%" for s in down_list[:5])  or "无"
 
-    up_stock_list  = "\n".join(f"{s['name']}|?" for s in up_list[:30])   # AI只分析前30，避免token超限
+    up_stock_list  = "\n".join(f"{s['name']}|?" for s in up_list)
     down_stock_list = "\n".join(f"{s['name']}|?" for s in down_list)
 
     prompt = f"""今日A股复盘（已排除创业板/科创板）：
@@ -180,7 +180,7 @@ def _ai_review(indices: Dict, stats: Dict, top_stocks: Dict) -> str:
 
     return ai_engine._call(
         "你是资深A股复盘分析师，擅长归纳当日市场主线并给出次日操作建议。",
-        prompt, max_tokens=3500
+        prompt, max_tokens=6000
     )
 
 
