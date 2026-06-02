@@ -194,6 +194,58 @@ def _ai_summaries(indices: Dict, stats: Dict, down_list: List[Dict]) -> str:
     )
 
 
+def _ai_zt_recommend(up_list: List[Dict], stats: Dict) -> List[Dict]:
+    """从今日所有涨停股中 AI 精选 5 只次日跟进标的"""
+    if not up_list:
+        return []
+    sec_str = " · ".join(stats.get("sectors", [])) or "无"
+    stock_names = "\n".join(f"{s['name']} {s['pct_chg']:+.1f}%" for s in up_list)
+
+    prompt = f"""今日主板涨停股共 {len(up_list)} 只，热点板块：{sec_str}
+
+完整涨停列表：
+{stock_names}
+
+请从中精选 5 只最具次日跟进价值的涨停股，优先考虑：
+① 首板（资金初次关注，情绪催化空间大）
+② 所在板块有明确主题催化（政策/业绩/行业事件）
+③ 非退市/ST/问题股
+④ 有量能配合
+
+请严格按以下格式输出，每行一只：
+
+【涨停精选】
+格式：股票名称|入选理由（40-60字，说明涨停催化剂、板块地位和次日跟进逻辑）|风险提示（20字以内）
+股票1|?|?
+股票2|?|?
+股票3|?|?
+股票4|?|?
+股票5|?|?"""
+
+    raw = ai_engine._call(
+        "你是资深A股涨停板策略分析师，擅长判断涨停股次日跟进价值。",
+        prompt, max_tokens=2000
+    )
+
+    import re as _re
+    section = _re.search(r"【涨停精选】(.+?)$", raw, _re.S)
+    lines_raw = section.group(1).strip().splitlines() if section else raw.splitlines()
+
+    result = []
+    for line in lines_raw:
+        line = line.strip().lstrip("- 0123456789.")
+        if "|" in line:
+            parts = line.split("|")
+            name   = parts[0].strip()
+            reason = parts[1].strip().lstrip("?").strip() if len(parts) > 1 else "—"
+            risk   = parts[2].strip().lstrip("?").strip() if len(parts) > 2 else "—"
+            if name and reason and reason != "?":
+                result.append({"name": name, "reason": reason, "risk": risk})
+        if len(result) >= 5:
+            break
+    return result
+
+
 # ─── 多维技术选股 ────────────────────────────────────────────────
 def _fetch_stock_picks(pro, today: str, name_map: Dict) -> List[Dict]:
     """
@@ -380,39 +432,46 @@ def _ai_picks_analysis(picks: List[Dict]) -> List[str]:
             f" 技术信号：{sig_str}\n"
         )
 
+    stocks_with_ma = "\n".join(
+        f"{p['name']}（MA20={p['ma20']}）|?|?" for p in picks
+    )
     prompt = f"""以下是今日技术面评分最高的 5 只A股，请逐一分析：
 
 {stock_list}
 请严格按以下格式逐股输出，不要改变标签名称：
 
 【开仓精选】
-格式：股票名称|开仓逻辑（25-35字，说明核心技术信号和入场理由）|参考止损（如"跌破MA20止损"或具体价格区间）
-{chr(10).join(p['name'] + '|?|?' for p in picks)}"""
+格式：股票名称|开仓逻辑|参考止损
+
+要求：
+- 开仓逻辑：50-80字，详细说明①当前技术形态 ②入场理由 ③上涨空间预判，例如"MACD今日金叉，DIF上穿DEA，MA5>MA10>MA20多头排列，RSI从超卖区回升至52，量比1.8倍温和放量确认趋势，前期压力位20元附近，若突破可看至22元"
+- 参考止损：必须给出具体止损价格数字，格式为"跌破X.XX止损"（X.XX为MA20下方1-2%的具体数值，不能只写"跌破MA20止损"）
+
+{stocks_with_ma}"""
 
     raw = ai_engine._call(
         "你是专业A股技术分析师，擅长多维度技术分析和精准入场时机判断。",
-        prompt, max_tokens=1200
+        prompt, max_tokens=2500
     )
-    # 解析每行
+    # 按顺序解析：找到所有含 | 的行，按位置对应股票（不依赖名称匹配）
     import re as _re
     section = _re.search(r"【开仓精选】(.+?)$", raw, _re.S)
     lines_raw = section.group(1).strip().splitlines() if section else raw.splitlines()
 
-    analysis = {}
+    parsed = []
     for line in lines_raw:
         line = line.strip().lstrip("- 0123456789.")
         if "|" in line:
             parts = line.split("|")
-            name = parts[0].strip()
             logic = parts[1].strip().lstrip("?").strip() if len(parts) > 1 else "—"
             stop  = parts[2].strip().lstrip("?").strip() if len(parts) > 2 else "—"
-            if name:
-                analysis[name] = (logic, stop)
+            if logic and logic != "?":
+                parsed.append({"logic": logic or "—", "stop": stop or "—"})
 
     result = []
-    for p in picks:
-        logic, stop = analysis.get(p["name"], ("—", "—"))
-        result.append({"logic": logic, "stop": stop})
+    for i, p in enumerate(picks):
+        item = parsed[i] if i < len(parsed) else {"logic": "—", "stop": "—"}
+        result.append(item)
     return result
 
 
@@ -537,7 +596,26 @@ class DailyReview:
             f.write(f"## 🤖 今日总结\n\n{summary}\n\n")
             f.write(f"## 📌 次日关注\n\n{next_focus}\n\n---\n\n")
 
-        # ── Phase N+2: 精选股票
+        # ── Phase N+2a: 涨停精选5只
+        logger.info("生成涨停精选推荐")
+        try:
+            zt_picks = _ai_zt_recommend(up_list, stats)
+        except Exception as e:
+            logger.warning(f"涨停精选 AI 调用失败: {e}")
+            zt_picks = []
+
+        if zt_picks:
+            zt_picks_block = "| # | 股票 | 入选理由 | 风险提示 |\n"
+            zt_picks_block += "|--:|------|---------|--------|\n"
+            for i, p in enumerate(zt_picks):
+                zt_picks_block += f"| {i+1} | {p['name']} | {p['reason']} | {p['risk']} |\n"
+        else:
+            zt_picks_block = "_涨停精选数据获取失败_"
+
+        with open(md_path, "a", encoding="utf-8-sig") as f:
+            f.write(f"## 🚀 涨停精选（5只，次日跟进参考）\n\n{zt_picks_block}\n\n---\n\n")
+
+        # ── Phase N+2b: 技术选股精选5只
         picks_ai = _ai_picks_analysis(picks)
         if picks:
             picks_block = "| # | 股票 | 现价 | 涨跌幅 | 技术信号 | 开仓逻辑 | 参考止损 |\n"
