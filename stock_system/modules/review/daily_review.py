@@ -288,6 +288,21 @@ def _fetch_stock_picks(pro, today: str, name_map: Dict) -> List[Dict]:
         # 涨幅前100作为候选池
         candidates = df.nlargest(100, "pct_chg")["ts_code"].tolist()
 
+        # ── Step 1.5: 批量获取今日资金流向（主力 = 大单 + 超大单，一次调用）
+        mf_map = {}
+        try:
+            mf_df = pro.moneyflow(
+                trade_date=today,
+                fields="ts_code,buy_lg_amount,sell_lg_amount,buy_elg_amount,sell_elg_amount"
+            )
+            if mf_df is not None and not mf_df.empty:
+                for _, mf_row in mf_df.iterrows():
+                    elg = float(mf_row.get("buy_elg_amount") or 0) - float(mf_row.get("sell_elg_amount") or 0)
+                    lg  = float(mf_row.get("buy_lg_amount")  or 0) - float(mf_row.get("sell_lg_amount")  or 0)
+                    mf_map[mf_row["ts_code"]] = elg + lg
+        except Exception as e:
+            logger.warning(f"资金流向获取失败，跳过资金维度: {e}")
+
         # ── Step 2: 逐股历史数据 + 技术指标计算
         start_date = (
             datetime.strptime(today, "%Y%m%d") - timedelta(days=100)
@@ -384,6 +399,16 @@ def _fetch_stock_picks(pro, today: str, name_map: Dict) -> List[Dict]:
                     score += 10; signals.append(f"量比{vol_ratio_c:.1f}倍放量")
                 elif vol_ratio_c >= 1.5:
                     score += 7; signals.append(f"量比{vol_ratio_c:.1f}温和放量")
+
+                # 6. 资金维度 (20分)
+                mf_net = mf_map.get(ts_code)
+                if mf_net is not None:
+                    if mf_net > 5000:
+                        score += 20; signals.append(f"主力净流入{mf_net/10000:.1f}亿")
+                    elif mf_net > 1000:
+                        score += 15; signals.append(f"主力净流入{mf_net:.0f}万")
+                    elif mf_net > 0:
+                        score +=  8; signals.append(f"主力小幅净流入{mf_net:.0f}万")
 
                 row = df[df["ts_code"] == ts_code].iloc[0]
                 results.append({
