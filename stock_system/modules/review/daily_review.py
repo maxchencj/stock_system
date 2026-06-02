@@ -197,19 +197,30 @@ def _ai_summaries(indices: Dict, stats: Dict, down_list: List[Dict]) -> str:
 
 
 def _ai_zt_recommend(up_list: List[Dict], stats: Dict,
-                     top_map: Dict[str, str] = None) -> List[Dict]:
-    """从今日所有涨停股中 AI 精选 5 只次日跟进标的。top_map: {name: 上榜原因}"""
+                     top_map: Dict[str, Dict] = None) -> List[Dict]:
+    """从今日所有涨停股中 AI 精选 5 只次日跟进标的。top_map: {name: {net_amount, has_inst_buy}}"""
     if not up_list:
         return []
     top_map = top_map or {}
     sec_str = " · ".join(stats.get("sectors", [])) or "无"
+
+    def _top_tag(name: str) -> str:
+        info = top_map.get(name)
+        if not info:
+            return ""
+        net = info["net_amount"]
+        net_str = f"净买{net/10000:.1f}亿" if net >= 10000 else (
+                  f"净买{net:.0f}万" if net >= 0 else f"净卖{abs(net):.0f}万")
+        seat = "机构介入" if info.get("has_inst_buy") else "游资主导"
+        return f"【龙虎榜·{net_str}·{seat}】"
+
     stock_names = "\n".join(
-        f"{s['name']} {s['pct_chg']:+.1f}%{'【龙虎榜】' if s['name'] in top_map else ''}"
+        f"{s['name']} {s['pct_chg']:+.1f}%{_top_tag(s['name'])}"
         for s in up_list
     )
 
     prompt = f"""今日主板涨停股共 {len(up_list)} 只，热点板块：{sec_str}
-标注【龙虎榜】的股票当日有机构/游资席位出现。
+标注【龙虎榜】的股票含龙虎榜净买额及席位类型（机构介入=机构专用席位买入，游资主导=知名游资席位）。
 
 完整涨停列表：
 {stock_names}
@@ -622,15 +633,38 @@ class DailyReview:
             f.write(f"## 🤖 今日总结\n\n{summary}\n\n")
             f.write(f"## 📌 次日关注\n\n{next_focus}\n\n---\n\n")
 
-        # ── Phase N+2a: 拉龙虎榜 + 涨停精选5只
-        top_map: Dict[str, str] = {}
+        # ── Phase N+2a: 拉龙虎榜（净买额 + 机构/游资席位）
+        top_map: Dict[str, Dict] = {}  # name -> {net_amount, has_inst_buy, inst_net}
         try:
-            tl_df = pro.top_list(trade_date=today, fields="ts_code,name,reason")
+            from collections import defaultdict as _dd
+            # top_list: 获取净买入额
+            tl_df = pro.top_list(trade_date=today, fields="ts_code,name,net_amount")
+            code_name: Dict[str, str] = {}
             if tl_df is not None and not tl_df.empty:
-                for _, tl_row in tl_df.iterrows():
-                    name = str(tl_row.get("name", "")).strip()
+                for _, row in tl_df.iterrows():
+                    name = str(row.get("name", "")).strip()
+                    code = str(row.get("ts_code", ""))
                     if name:
-                        top_map[name] = str(tl_row.get("reason", "上榜")).strip()
+                        code_name[code] = name
+                        top_map[name] = {
+                            "net_amount": float(row.get("net_amount") or 0),
+                            "has_inst_buy": False,
+                            "inst_net": 0.0,
+                        }
+            # top_inst: 机构专用席位汇总
+            ti_df = pro.top_inst(trade_date=today, fields="ts_code,exalter,net_buy,side")
+            if ti_df is not None and not ti_df.empty:
+                inst_by_code: Dict[str, Dict] = _dd(lambda: {"has_inst_buy": False, "inst_net": 0.0})
+                for _, row in ti_df.iterrows():
+                    if str(row.get("exalter", "")) == "机构专用":
+                        net = float(row.get("net_buy") or 0) / 10000  # 元→万元
+                        code = str(row["ts_code"])
+                        inst_by_code[code]["inst_net"] += net
+                        if str(row.get("side")) == "0" and net > 0:
+                            inst_by_code[code]["has_inst_buy"] = True
+                for code, name in code_name.items():
+                    if name in top_map and code in inst_by_code:
+                        top_map[name].update(inst_by_code[code])
             logger.info(f"龙虎榜获取 {len(top_map)} 只")
         except Exception as e:
             logger.warning(f"龙虎榜获取失败: {e}")
@@ -643,12 +677,20 @@ class DailyReview:
             zt_picks = []
 
         if zt_picks:
-            zt_picks_block = "| # | 股票 | 龙虎榜 | 入选理由 | 风险提示 |\n"
-            zt_picks_block += "|--:|------|:------:|---------|--------|\n"
+            zt_picks_block = "| # | 股票 | 龙虎榜净买 | 席位 | 入选理由 | 风险提示 |\n"
+            zt_picks_block += "|--:|------|----------:|:----:|---------|--------|\n"
             for i, p in enumerate(zt_picks):
-                top_reason = top_map.get(p["name"], "")
-                top_flag = f"✅ {top_reason[:10]}" if top_reason else "—"
-                zt_picks_block += f"| {i+1} | {p['name']} | {top_flag} | {p['reason']} | {p['risk']} |\n"
+                info = top_map.get(p["name"], {})
+                if info:
+                    net = info["net_amount"]
+                    net_str = f"{net/10000:.1f}亿" if abs(net) >= 10000 else f"{net:.0f}万"
+                    net_disp = f"+{net_str}" if net >= 0 else f"-{net_str}"
+                    seat = "机构" if info.get("has_inst_buy") else "游资"
+                    top_net = net_disp
+                    top_seat = seat
+                else:
+                    top_net, top_seat = "—", "—"
+                zt_picks_block += f"| {i+1} | {p['name']} | {top_net} | {top_seat} | {p['reason']} | {p['risk']} |\n"
         else:
             zt_picks_block = "_涨停精选数据获取失败_"
 
