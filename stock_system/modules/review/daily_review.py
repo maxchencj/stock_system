@@ -35,17 +35,20 @@ def _get_name_map(pro, today: str) -> Dict[str, str]:
     """从 stock_basic 获取 ts_code->name，结果写文件缓存当天复用"""
     cache = _DATA_DIR / "stock_basic_cache.csv"
     if cache.exists():
-        first_line = cache.open().readline().strip()
+        first_line = cache.open(encoding="utf-8").readline().strip()
         if first_line == f"# date={today}":
             import pandas as pd
             df = pd.read_csv(cache, comment="#")
             return dict(zip(df["ts_code"], df["name"]))
-
-    basic = pro.stock_basic(exchange="", list_status="L", fields="ts_code,name")
-    with cache.open("w") as f:
-        f.write(f"# date={today}\n")
-        basic.to_csv(f, index=False)
-    return dict(zip(basic["ts_code"], basic["name"]))
+    try:
+        basic = pro.stock_basic(exchange="", list_status="L", fields="ts_code,name")
+        with cache.open("w", encoding="utf-8") as f:
+            f.write(f"# date={today}\n")
+            basic.to_csv(f, index=False)
+        return dict(zip(basic["ts_code"], basic["name"]))
+    except Exception as e:
+        logger.warning(f"stock_basic 获取失败，将使用代码作为股票名: {e}")
+        return {}
 
 
 # ─── 大盘指数 ──────────────────────────────────────────────────
@@ -481,7 +484,7 @@ def _ai_picks_analysis(picks: List[Dict]) -> List[str]:
             f" 现价{p['price']} 涨跌{p['pct_chg']:+.2f}%"
             f" MA5={p['ma5']} MA10={p['ma10']} MA20={p['ma20']}"
             f" RSI={p['rsi']} MACD={p['macd_tag']}"
-            f" 量比={p['vol_ratio']} 换手={p['turnover']}%"
+            f" 量比={p['vol_ratio']}"
             f" 技术信号：{sig_str}\n"
         )
 
@@ -544,6 +547,11 @@ class DailyReview:
         top_stocks = _fetch_top_stocks(pro, today, name_map)
         stats      = _fetch_limit_stats(pro, today, top_stocks.get("daily_df"))
         picks      = _fetch_stock_picks(pro, today, name_map)
+
+        # 非交易日或数据拉取失败时提前退出，避免推送空文档
+        if top_stocks.get("daily_df") is None or top_stocks["daily_df"].empty:
+            logger.warning("今日无行情数据（可能是非交易日或 API 失败），跳过复盘推送")
+            return
 
         zt, dt, lian = stats.get("zt", 0), stats.get("dt", 0), stats.get("lian", 0)
         sec_str      = " · ".join(stats.get("sectors", [])) or "—"
