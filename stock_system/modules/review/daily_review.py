@@ -150,7 +150,7 @@ def _ai_batch_reasons(stocks: List[Dict]) -> List[str]:
 {stock_list}"""
     raw = ai_engine._call(
         "你是资深A股复盘分析师，擅长归纳个股涨停逻辑。",
-        prompt, max_tokens=1500
+        prompt, max_tokens=2000
     )
     parsed = []
     for line in raw.splitlines():
@@ -208,11 +208,11 @@ def _ai_zt_recommend(up_list: List[Dict], stats: Dict,
         info = top_map.get(name)
         if not info:
             return ""
-        net = info["net_amount"]
+        net = info["net_amount"]  # 万元
         net_str = f"净买{net/10000:.1f}亿" if net >= 10000 else (
                   f"净买{net:.0f}万" if net >= 0 else f"净卖{abs(net):.0f}万")
-        seat = "机构介入" if info.get("has_inst_buy") else "游资主导"
-        return f"【龙虎榜·{net_str}·{seat}】"
+        seats = info.get("buy_seats_str") or ("机构介入" if info.get("has_inst_buy") else "游资主导")
+        return f"【龙虎榜·{net_str}·{seats}】"
 
     stock_names = "\n".join(
         f"{s['name']} {s['pct_chg']:+.1f}%{_top_tag(s['name'])}"
@@ -569,7 +569,7 @@ class DailyReview:
 
         # ── Phase 1..N: 分批 AI 生成涨停原因，追加写行（按位置匹配，不依赖名称）
         import time as _time
-        BATCH_SIZE = 30
+        BATCH_SIZE = 20
         for batch_idx in range(0, len(up_list), BATCH_SIZE):
             batch = up_list[batch_idx: batch_idx + BATCH_SIZE]
             batch_no = batch_idx // BATCH_SIZE + 1
@@ -637,7 +637,7 @@ class DailyReview:
         top_map: Dict[str, Dict] = {}  # name -> {net_amount, has_inst_buy, inst_net}
         try:
             from collections import defaultdict as _dd
-            # top_list: 获取净买入额
+            # top_list: 获取净买入额（单位：元，需/10000转万元）
             tl_df = pro.top_list(trade_date=today, fields="ts_code,name,net_amount")
             code_name: Dict[str, str] = {}
             if tl_df is not None and not tl_df.empty:
@@ -647,24 +647,47 @@ class DailyReview:
                     if name:
                         code_name[code] = name
                         top_map[name] = {
-                            "net_amount": float(row.get("net_amount") or 0),
+                            "net_amount": float(row.get("net_amount") or 0) / 10000,  # 元→万元
                             "has_inst_buy": False,
                             "inst_net": 0.0,
+                            "buy_seats_str": "",
                         }
-            # top_inst: 机构专用席位汇总
+            # top_inst: 买方席位明细（取前3名，缩写显示）
             ti_df = pro.top_inst(trade_date=today, fields="ts_code,exalter,net_buy,side")
             if ti_df is not None and not ti_df.empty:
-                inst_by_code: Dict[str, Dict] = _dd(lambda: {"has_inst_buy": False, "inst_net": 0.0})
+                inst_by_code: Dict[str, Dict] = _dd(lambda: {
+                    "has_inst_buy": False, "inst_net": 0.0, "buy_seats": []
+                })
                 for _, row in ti_df.iterrows():
-                    if str(row.get("exalter", "")) == "机构专用":
-                        net = float(row.get("net_buy") or 0) / 10000  # 元→万元
-                        code = str(row["ts_code"])
+                    if str(row.get("side")) != "0":
+                        continue  # 只看买方席位
+                    net = float(row.get("net_buy") or 0) / 10000  # 元→万元
+                    code = str(row["ts_code"])
+                    exalter = str(row.get("exalter", ""))
+                    if net > 0:
+                        inst_by_code[code]["buy_seats"].append((net, exalter))
+                    if exalter == "机构专用" and net > 0:
+                        inst_by_code[code]["has_inst_buy"] = True
                         inst_by_code[code]["inst_net"] += net
-                        if str(row.get("side")) == "0" and net > 0:
-                            inst_by_code[code]["has_inst_buy"] = True
+
+                def _abbr_seat(name: str) -> str:
+                    """券商席位缩写：取公司名前2字+末尾地名2字，机构专用直接返回"""
+                    if name == "机构专用":
+                        return "机构"
+                    # 去掉"证券股份有限公司""证券有限责任公司"等后取前2字
+                    short = name.replace("证券股份有限公司", "").replace("证券有限责任公司", "") \
+                                .replace("证券有限公司", "").replace("股份有限公司", "")
+                    return short[:4] if len(short) >= 4 else short
+
                 for code, name in code_name.items():
                     if name in top_map and code in inst_by_code:
-                        top_map[name].update(inst_by_code[code])
+                        info = inst_by_code[code]
+                        top3 = sorted(info["buy_seats"], key=lambda x: x[0], reverse=True)[:3]
+                        top_map[name].update({
+                            "has_inst_buy": info["has_inst_buy"],
+                            "inst_net": info["inst_net"],
+                            "buy_seats_str": " · ".join(_abbr_seat(s) for _, s in top3),
+                        })
             logger.info(f"龙虎榜获取 {len(top_map)} 只")
         except Exception as e:
             logger.warning(f"龙虎榜获取失败: {e}")
@@ -677,20 +700,18 @@ class DailyReview:
             zt_picks = []
 
         if zt_picks:
-            zt_picks_block = "| # | 股票 | 龙虎榜净买 | 席位 | 入选理由 | 风险提示 |\n"
-            zt_picks_block += "|--:|------|----------:|:----:|---------|--------|\n"
+            zt_picks_block = "| # | 股票 | 龙虎榜净买 | 买方席位（前3） | 入选理由 | 风险提示 |\n"
+            zt_picks_block += "|--:|------|----------:|--------------|---------|--------|\n"
             for i, p in enumerate(zt_picks):
                 info = top_map.get(p["name"], {})
                 if info:
-                    net = info["net_amount"]
-                    net_str = f"{net/10000:.1f}亿" if abs(net) >= 10000 else f"{net:.0f}万"
-                    net_disp = f"+{net_str}" if net >= 0 else f"-{net_str}"
-                    seat = "机构" if info.get("has_inst_buy") else "游资"
-                    top_net = net_disp
-                    top_seat = seat
+                    net = info["net_amount"]  # 万元
+                    net_wan = f"{net/10000:.1f}亿" if abs(net) >= 10000 else f"{net:.0f}万"
+                    net_disp = f"+{net_wan}" if net >= 0 else f"{net_wan}"
+                    seats = info.get("buy_seats_str") or ("机构" if info.get("has_inst_buy") else "游资")
                 else:
-                    top_net, top_seat = "—", "—"
-                zt_picks_block += f"| {i+1} | {p['name']} | {top_net} | {top_seat} | {p['reason']} | {p['risk']} |\n"
+                    net_disp, seats = "—", "—"
+                zt_picks_block += f"| {i+1} | {p['name']} | {net_disp} | {seats} | {p['reason']} | {p['risk']} |\n"
         else:
             zt_picks_block = "_涨停精选数据获取失败_"
 
