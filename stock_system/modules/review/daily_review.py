@@ -196,23 +196,29 @@ def _ai_summaries(indices: Dict, stats: Dict, down_list: List[Dict]) -> str:
     )
 
 
-def _ai_zt_recommend(up_list: List[Dict], stats: Dict) -> List[Dict]:
-    """从今日所有涨停股中 AI 精选 5 只次日跟进标的"""
+def _ai_zt_recommend(up_list: List[Dict], stats: Dict,
+                     top_map: Dict[str, str] = None) -> List[Dict]:
+    """从今日所有涨停股中 AI 精选 5 只次日跟进标的。top_map: {name: 上榜原因}"""
     if not up_list:
         return []
+    top_map = top_map or {}
     sec_str = " · ".join(stats.get("sectors", [])) or "无"
-    stock_names = "\n".join(f"{s['name']} {s['pct_chg']:+.1f}%" for s in up_list)
+    stock_names = "\n".join(
+        f"{s['name']} {s['pct_chg']:+.1f}%{'【龙虎榜】' if s['name'] in top_map else ''}"
+        for s in up_list
+    )
 
     prompt = f"""今日主板涨停股共 {len(up_list)} 只，热点板块：{sec_str}
+标注【龙虎榜】的股票当日有机构/游资席位出现。
 
 完整涨停列表：
 {stock_names}
 
 请从中精选 5 只最具次日跟进价值的涨停股，优先考虑：
-① 首板（资金初次关注，情绪催化空间大）
-② 所在板块有明确主题催化（政策/业绩/行业事件）
-③ 非退市/ST/问题股
-④ 有量能配合
+① 出现在龙虎榜的涨停股（机构/游资关注度高）
+② 首板（资金初次关注，情绪催化空间大）
+③ 所在板块有明确主题催化（政策/业绩/行业事件）
+④ 非退市/ST/问题股
 
 请严格按以下格式输出，每行一只：
 
@@ -616,19 +622,33 @@ class DailyReview:
             f.write(f"## 🤖 今日总结\n\n{summary}\n\n")
             f.write(f"## 📌 次日关注\n\n{next_focus}\n\n---\n\n")
 
-        # ── Phase N+2a: 涨停精选5只
+        # ── Phase N+2a: 拉龙虎榜 + 涨停精选5只
+        top_map: Dict[str, str] = {}
+        try:
+            tl_df = pro.top_list(trade_date=today, fields="ts_code,name,reason")
+            if tl_df is not None and not tl_df.empty:
+                for _, tl_row in tl_df.iterrows():
+                    name = str(tl_row.get("name", "")).strip()
+                    if name:
+                        top_map[name] = str(tl_row.get("reason", "上榜")).strip()
+            logger.info(f"龙虎榜获取 {len(top_map)} 只")
+        except Exception as e:
+            logger.warning(f"龙虎榜获取失败: {e}")
+
         logger.info("生成涨停精选推荐")
         try:
-            zt_picks = _ai_zt_recommend(up_list, stats)
+            zt_picks = _ai_zt_recommend(up_list, stats, top_map)
         except Exception as e:
             logger.warning(f"涨停精选 AI 调用失败: {e}")
             zt_picks = []
 
         if zt_picks:
-            zt_picks_block = "| # | 股票 | 入选理由 | 风险提示 |\n"
-            zt_picks_block += "|--:|------|---------|--------|\n"
+            zt_picks_block = "| # | 股票 | 龙虎榜 | 入选理由 | 风险提示 |\n"
+            zt_picks_block += "|--:|------|:------:|---------|--------|\n"
             for i, p in enumerate(zt_picks):
-                zt_picks_block += f"| {i+1} | {p['name']} | {p['reason']} | {p['risk']} |\n"
+                top_reason = top_map.get(p["name"], "")
+                top_flag = f"✅ {top_reason[:10]}" if top_reason else "—"
+                zt_picks_block += f"| {i+1} | {p['name']} | {top_flag} | {p['reason']} | {p['risk']} |\n"
         else:
             zt_picks_block = "_涨停精选数据获取失败_"
 
