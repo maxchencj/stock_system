@@ -94,7 +94,14 @@ def _fetch_limit_stats(pro, today: str, daily_df) -> Dict:
         lian = int((zt_df["limit_times"] >= 2).sum()) if zt_df is not None and not zt_df.empty else 0
         sectors = zt_df["industry"].value_counts().head(3).index.tolist() \
             if zt_df is not None and not zt_df.empty else []
-        return {"zt": zt_count, "dt": dt_count, "lian": lian, "sectors": sectors}
+        zt_tag_map: Dict[str, str] = {}  # {ts_code: industry}
+        if zt_df is not None and not zt_df.empty:
+            for _, row in zt_df.iterrows():
+                ind = str(row.get("industry") or "").strip()
+                if ind:
+                    zt_tag_map[str(row["ts_code"])] = ind
+        return {"zt": zt_count, "dt": dt_count, "lian": lian,
+                "sectors": sectors, "zt_tag_map": zt_tag_map}
 
     except Exception:
         # 降级：从 daily 推算（排除创业板/科创板）
@@ -143,8 +150,13 @@ def _fetch_top_stocks(pro, today: str, name_map: Dict) -> Dict:
 # ─── AI 分析（分批）──────────────────────────────────────────────
 def _ai_batch_reasons(stocks: List[Dict]) -> List[str]:
     """为一批涨停股生成上涨原因，按输入顺序返回 reason 列表"""
-    stock_list = "\n".join(f"{s['name']}|?" for s in stocks)
+    def _tag(s: Dict) -> str:
+        ind = s.get("industry", "").strip()
+        return f"（{ind}）" if ind else ""
+
+    stock_list = "\n".join(f"{s['name']}{_tag(s)}|?" for s in stocks)
     prompt = f"""请为以下今日涨停的A股股票逐一生成上涨原因（15-25字，说明具体催化剂和逻辑）：
+括号内为该股所属行业，请以此为参考生成更精准的原因。
 
 格式：股票名称|原因（严格按顺序，每行一只，不要跳过）
 {stock_list}"""
@@ -215,7 +227,9 @@ def _ai_zt_recommend(up_list: List[Dict], stats: Dict,
         return f"【龙虎榜·{net_str}·{seats}】"
 
     stock_names = "\n".join(
-        f"{s['name']} {s['pct_chg']:+.1f}%{_top_tag(s['name'])}"
+        f"{s['name']} {s['pct_chg']:+.1f}%"
+        f"{'[' + s['industry'] + ']' if s.get('industry') else ''}"
+        f"{_top_tag(s['name'])}"
         for s in up_list
     )
 
@@ -535,6 +549,11 @@ class DailyReview:
         sec_str      = " · ".join(stats.get("sectors", [])) or "—"
         up_list      = top_stocks.get("up", [])
         down_list    = top_stocks.get("down", [])
+
+        # 把行业标签注入 up_list，供 AI 生成原因时参考
+        zt_tag_map = stats.get("zt_tag_map", {})
+        for s in up_list:
+            s["industry"] = zt_tag_map.get(s["ts_code"], "")
 
         md_path = str(_DATA_DIR / f"review_{date_str}.md")
 
