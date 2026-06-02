@@ -141,27 +141,29 @@ def _fetch_top_stocks(pro, today: str, name_map: Dict) -> Dict:
 
 
 # ─── AI 分析（分批）──────────────────────────────────────────────
-def _ai_batch_reasons(stocks: List[Dict]) -> Dict[str, str]:
-    """为一批涨停股生成上涨原因，返回 {name: reason}"""
+def _ai_batch_reasons(stocks: List[Dict]) -> List[str]:
+    """为一批涨停股生成上涨原因，按输入顺序返回 reason 列表"""
     stock_list = "\n".join(f"{s['name']}|?" for s in stocks)
     prompt = f"""请为以下今日涨停的A股股票逐一生成上涨原因（15-25字，说明具体催化剂和逻辑）：
 
-格式：股票名称|原因
+格式：股票名称|原因（严格按顺序，每行一只，不要跳过）
 {stock_list}"""
     raw = ai_engine._call(
         "你是资深A股复盘分析师，擅长归纳个股涨停逻辑。",
         prompt, max_tokens=1500
     )
-    result = {}
+    parsed = []
     for line in raw.splitlines():
         line = line.strip().lstrip("- 0123456789.")
         if "|" in line:
             parts = line.split("|", 1)
-            name = parts[0].strip()
-            reason = parts[1].strip().lstrip("?").strip() or "—"
-            if name:
-                result[name] = reason
-    return result
+            reason = parts[1].strip().lstrip("?").strip() if len(parts) > 1 else "—"
+            if reason and reason != "?":
+                parsed.append(reason or "—")
+    # 按位置对应，不足补 "—"
+    while len(parsed) < len(stocks):
+        parsed.append("—")
+    return parsed[:len(stocks)]
 
 
 def _ai_summaries(indices: Dict, stats: Dict, down_list: List[Dict]) -> str:
@@ -288,18 +290,16 @@ def _fetch_stock_picks(pro, today: str, name_map: Dict) -> List[Dict]:
         # 涨幅前100作为候选池
         candidates = df.nlargest(100, "pct_chg")["ts_code"].tolist()
 
-        # ── Step 1.5: 批量获取今日资金流向（主力 = 大单 + 超大单，一次调用）
+        # ── Step 1.5: 批量获取今日资金净流入（使用 net_mf_amount，单位万元，一次调用）
         mf_map = {}
         try:
             mf_df = pro.moneyflow(
                 trade_date=today,
-                fields="ts_code,buy_lg_amount,sell_lg_amount,buy_elg_amount,sell_elg_amount"
+                fields="ts_code,net_mf_amount"
             )
             if mf_df is not None and not mf_df.empty:
                 for _, mf_row in mf_df.iterrows():
-                    elg = float(mf_row.get("buy_elg_amount") or 0) - float(mf_row.get("sell_elg_amount") or 0)
-                    lg  = float(mf_row.get("buy_lg_amount")  or 0) - float(mf_row.get("sell_lg_amount")  or 0)
-                    mf_map[mf_row["ts_code"]] = elg + lg
+                    mf_map[mf_row["ts_code"]] = float(mf_row.get("net_mf_amount") or 0)
         except Exception as e:
             logger.warning(f"资金流向获取失败，跳过资金维度: {e}")
 
@@ -400,15 +400,15 @@ def _fetch_stock_picks(pro, today: str, name_map: Dict) -> List[Dict]:
                 elif vol_ratio_c >= 1.5:
                     score += 7; signals.append(f"量比{vol_ratio_c:.1f}温和放量")
 
-                # 6. 资金维度 (20分)
+                # 6. 资金维度 (20分，net_mf_amount 单位万元)
                 mf_net = mf_map.get(ts_code)
                 if mf_net is not None:
-                    if mf_net > 5000:
-                        score += 20; signals.append(f"主力净流入{mf_net/10000:.1f}亿")
+                    if mf_net > 50000:
+                        score += 20; signals.append(f"净流入{mf_net/10000:.1f}亿")
+                    elif mf_net > 10000:
+                        score += 15; signals.append(f"净流入{mf_net/10000:.1f}亿")
                     elif mf_net > 1000:
-                        score += 15; signals.append(f"主力净流入{mf_net:.0f}万")
-                    elif mf_net > 0:
-                        score +=  8; signals.append(f"主力小幅净流入{mf_net:.0f}万")
+                        score +=  8; signals.append(f"净流入{mf_net:.0f}万")
 
                 row = df[df["ts_code"] == ts_code].iloc[0]
                 results.append({
@@ -553,29 +553,27 @@ class DailyReview:
         with open(md_path, "w", encoding="utf-8-sig") as f:
             f.write(header)
 
-        # ── Phase 1..N: 分批 AI 生成涨停原因，追加写行
+        # ── Phase 1..N: 分批 AI 生成涨停原因，追加写行（按位置匹配，不依赖名称）
         import time as _time
         BATCH_SIZE = 30
-        all_up_reasons: Dict[str, str] = {}
         for batch_idx in range(0, len(up_list), BATCH_SIZE):
             batch = up_list[batch_idx: batch_idx + BATCH_SIZE]
             batch_no = batch_idx // BATCH_SIZE + 1
             logger.info(f"涨停原因批次 {batch_no}，共 {len(batch)} 只")
-            batch_reasons: Dict[str, str] = {}
+            batch_reasons: List[str] = []
             for attempt in range(3):
                 try:
                     batch_reasons = _ai_batch_reasons(batch)
-                    if batch_reasons:
+                    if any(r != "—" for r in batch_reasons):
                         break
                     logger.warning(f"批次 {batch_no} 第 {attempt+1} 次返回空，重试")
                 except Exception as e:
                     logger.warning(f"批次 {batch_no} 第 {attempt+1} 次失败: {e}")
                 _time.sleep(3)
-            all_up_reasons.update(batch_reasons)
 
             with open(md_path, "a", encoding="utf-8-sig") as f:
                 for i, s in enumerate(batch):
-                    reason = batch_reasons.get(s["name"], "—")
+                    reason = batch_reasons[i] if i < len(batch_reasons) else "—"
                     f.write(f"| {batch_idx + i + 1} | {s['name']} | {s['pct_chg']:+.2f}% | {reason} |\n")
 
         # ── Phase N+1: AI 生成总结 + 跌幅原因
