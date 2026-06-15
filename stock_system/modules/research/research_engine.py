@@ -6,7 +6,6 @@ A股 → A股 Bot | 美股 → mcDolphin Bot
 import json
 import random
 import time
-import akshare as ak
 import yfinance as yf
 from datetime import datetime
 from pathlib import Path
@@ -165,6 +164,7 @@ class AShareResearch:
         import pandas as pd
         logger.info("获取A股质量股票池（新浪财经）...")
         try:
+            import akshare as ak
             df = ak.stock_zh_a_spot()
             # 新浪列名：symbol, open, close, high, low, volume, amount, outstanding_share, turnover_rate
             df = df.rename(columns={"symbol": "代码", "name": "名称"}) if "name" in df.columns else df

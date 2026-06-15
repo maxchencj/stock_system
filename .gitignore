@@ -49,3 +49,4 @@ stock_system/data/review_*.md
 stock_system/data/stock_basic_cache.csv
 stock_system/data/task_schedule.md
 stock_system/data/sim_account.json
+stock_system/data/github_trending_log.json
