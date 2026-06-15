@@ -13,6 +13,7 @@ _DATA_DIR = Path(__file__).parent.parent / "data"
 from config.settings import config
 from modules.stock_picker.picker import stock_picker
 from modules.sector.analyzer import sector_analyzer
+from modules.github_trending.trending_engine import github_trending_engine
 from notify.notifier import notifier
 from utils.logger import logger
 
@@ -194,6 +195,14 @@ class TaskScheduler:
             id="daily_review", name="每日复盘", replace_existing=True
         )
 
+        # GitHub 科技雷达（每天 8:40）
+        self.scheduler.add_job(
+            self.github_trending_task,
+            CronTrigger(hour=8, minute=40),
+            id="github_trending_daily",
+            name="GitHub科技雷达",
+            replace_existing=True
+        )
 
         # ── Phase 3：数据增强 ──────────────────────────────
 
@@ -524,6 +533,13 @@ class TaskScheduler:
         except Exception as e:
             logger.error(f"每日复盘失败: {e}", exc_info=True)
 
+    def github_trending_task(self):
+        """GitHub 科技雷达任务"""
+        logger.info("执行定时任务: GitHub 科技雷达")
+        try:
+            github_trending_engine.run()
+        except Exception as e:
+            logger.error(f"GitHub 科技雷达任务失败: {e}", exc_info=True)
 
     def realtime_market_push_task(self):
         """实时行情推送任务"""
