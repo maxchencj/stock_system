@@ -3,7 +3,6 @@ GitHub 科技雷达 - 每日精选股票投资 / AI 科技相关开源项目
 每天 8:40 推送到专用 Telegram Bot
 """
 import json
-import time
 from datetime import datetime, timedelta
 from pathlib import Path
 from typing import List, Dict
@@ -102,7 +101,11 @@ class GitHubTrendingEngine:
             data = resp.json()
             projects = []
             for item in data:
-                full_name = item.get("author", "") + "/" + item.get("name", "")
+                author = item.get("author", "")
+                name = item.get("name", "")
+                if not author or not name:
+                    continue
+                full_name = author + "/" + name
                 projects.append({
                     "full_name": full_name,
                     "description": item.get("description", ""),
