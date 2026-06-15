@@ -146,6 +146,17 @@ class SimTradingConfig:
 
 
 @dataclass
+class GitHubTrendingConfig:
+    """GitHub 科技雷达配置"""
+    telegram_token: str = os.getenv("GITHUB_TELEGRAM_TOKEN", "")
+    telegram_chat_id: str = os.getenv("GITHUB_TELEGRAM_CHAT_ID", "")
+    trending_api_url: str = "https://github-trending-api.waite.men/repositories?language=&since=daily"
+    max_picks: int = 5
+    min_picks: int = 3
+    dedup_days: int = 7
+
+
+@dataclass
 class SystemConfig:
     """系统总配置"""
     ai: AIConfig = field(default_factory=AIConfig)
@@ -157,6 +168,7 @@ class SystemConfig:
     web: WebConfig = field(default_factory=WebConfig)
     us_stock: USStockConfig = field(default_factory=USStockConfig)
     sim_trading: SimTradingConfig = field(default_factory=SimTradingConfig)
+    github_trending: GitHubTrendingConfig = field(default_factory=GitHubTrendingConfig)
 
     # 日志配置
     log_level: str = "INFO"
