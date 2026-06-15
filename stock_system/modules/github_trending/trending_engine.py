@@ -7,6 +7,8 @@ from datetime import datetime, timedelta
 from pathlib import Path
 from typing import List, Dict
 
+import re
+
 import requests
 
 from ai.analysis_engine import ai_engine
@@ -90,29 +92,35 @@ class GitHubTrendingEngine:
         self._log = _DedupeLog()
 
     def _fetch_trending(self) -> List[Dict]:
-        """从第三方 API 抓取今日 Trending 项目"""
+        """直接抓取 GitHub Trending 页面，解析今日热门项目"""
         try:
             resp = requests.get(
                 config.github_trending.trending_api_url,
                 timeout=15,
-                headers={"User-Agent": "Mozilla/5.0"},
+                headers={"User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)"},
             )
             resp.raise_for_status()
-            data = resp.json()
+            html = resp.text
+            articles = re.findall(r"<article[^>]*>(.*?)</article>", html, re.DOTALL)
             projects = []
-            for item in data:
-                author = item.get("author", "")
-                name = item.get("name", "")
-                if not author or not name:
+            for art in articles:
+                m = re.search(r'href="/([a-zA-Z0-9_.-]+/[a-zA-Z0-9_.-]+)"', art)
+                if not m:
                     continue
-                full_name = author + "/" + name
+                full_name = m.group(1)
+                desc_m = re.search(r'<p[^>]*class="[^"]*col-9[^"]*"[^>]*>(.*?)</p>', art, re.DOTALL)
+                desc = re.sub(r"<[^>]+>", "", desc_m.group(1)).strip() if desc_m else ""
+                desc = re.sub(r"\s+", " ", desc)
+                lang_m = re.search(r'itemprop="programmingLanguage"[^>]*>(.*?)<', art)
+                lang = lang_m.group(1).strip() if lang_m else ""
+                stars_m = re.search(r"([\d,]+)\s+stars today", art)
+                stars = int(stars_m.group(1).replace(",", "")) if stars_m else 0
                 projects.append({
                     "full_name": full_name,
-                    "description": item.get("description", ""),
-                    "language": item.get("language", ""),
-                    "stars_today": item.get("currentPeriodStars", 0),
-                    "topics": item.get("builtBy", []),
-                    "url": item.get("url", f"https://github.com/{full_name}"),
+                    "description": desc,
+                    "language": lang,
+                    "stars_today": stars,
+                    "url": f"https://github.com/{full_name}",
                 })
             logger.info(f"GitHub Trending 抓取成功，共 {len(projects)} 个项目")
             return projects

@@ -150,7 +150,7 @@ class GitHubTrendingConfig:
     """GitHub 科技雷达配置"""
     telegram_token: str = os.getenv("GITHUB_TELEGRAM_TOKEN", "")
     telegram_chat_id: str = os.getenv("GITHUB_TELEGRAM_CHAT_ID", "")
-    trending_api_url: str = "https://github-trending-api.waite.men/repositories?language=&since=daily"
+    trending_api_url: str = "https://github.com/trending"
     max_picks: int = 5
     min_picks: int = 3
     dedup_days: int = 7
