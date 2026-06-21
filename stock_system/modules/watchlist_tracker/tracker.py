@@ -461,7 +461,7 @@ class AShareWatchlistTracker:
                 )
                 if ind:
                     weekly_summary += (
-                        f"\nMA5={ind['ma5']} MA10={ind['ma10']} MA20={ind['ma20']} ({ind['ma_position']})"
+                        f"\nMA5={ind['ma5']} MA10={ind['ma10']} MA20={ind['ma20']} ({ind['ma_pos']})"
                         f"\nRSI={ind['rsi']}  MACD={ind['macd_dif']}/{ind['macd_dea']}"
                     )
 
@@ -594,7 +594,7 @@ class USWatchlistTracker:
                 )
                 if ind:
                     weekly_summary += (
-                        f"\nMA5={ind['ma5']} MA10={ind['ma10']} MA20={ind['ma20']} ({ind['ma_position']})"
+                        f"\nMA5={ind['ma5']} MA10={ind['ma10']} MA20={ind['ma20']} ({ind['ma_pos']})"
                         f"\nRSI={ind['rsi']}  MACD={ind['macd_dif']}/{ind['macd_dea']}"
                     )
 
