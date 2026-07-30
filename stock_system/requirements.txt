@@ -25,7 +25,7 @@ apscheduler==3.10.4
 
 # 通知推送
 requests==2.31.0
-python-telegram-bot==20.7
+python-telegram-bot==22.8
 
 # 测试
 pytest
